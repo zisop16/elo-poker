@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="TableSettings" load_steps=2 format=3 uid="uid://daergiwn8pe0u"]
+
+[ext_resource type="Script" uid="uid://c37cfmsvoa3rq" path="res://scripts/PokerBase/TableSettings.cs" id="1_7u2dh"]
+
+[resource]
+script = ExtResource("1_7u2dh")
+NumPlayers = 2
+BigBlind = 2
+SmallBlind = 1
+metadata/_custom_type_script = "uid://c37cfmsvoa3rq"

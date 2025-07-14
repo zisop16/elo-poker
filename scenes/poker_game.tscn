@@ -1,0 +1,21 @@
+[gd_scene load_steps=5 format=3 uid="uid://56h41mdayeql"]
+
+[ext_resource type="Script" uid="uid://b7k45rl03s0qn" path="res://scripts/Test.cs" id="1_1pxt8"]
+
+[sub_resource type="Gradient" id="Gradient_4c07p"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_1pxt8"]
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_3i8bq"]
+color_ramp = SubResource("Gradient_4c07p")
+noise = SubResource("FastNoiseLite_1pxt8")
+
+[node name="PokerGame" type="Node2D"]
+
+[node name="Test" type="Node2D" parent="."]
+script = ExtResource("1_1pxt8")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = SubResource("NoiseTexture2D_3i8bq")
