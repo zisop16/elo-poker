@@ -9,10 +9,15 @@ public partial class PokerClient : Node {
         Peer.CreateClient(PokerServer.SERVER_URL, opt);
     }
 
+    Button TestButton;
+
     public override void _Ready() {
         Peer = new();
         StartClient();
         GD.Print("Client Started");
+
+        TestButton = GetNode<Button>("%TestButton");
+        TestButton.ButtonDown += SendPacket;
     }
 
 
@@ -20,4 +25,9 @@ public partial class PokerClient : Node {
         Peer.Poll();
     }
 
+    void SendPacket() {
+        string msg = "i am the client";
+        byte[] packet = msg.ToUtf8Buffer();
+        Peer.PutPacket(packet);
+    }
 }

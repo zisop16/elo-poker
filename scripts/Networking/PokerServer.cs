@@ -1,5 +1,6 @@
 using Godot;
 using System;
+using System.Text;
 
 public partial class PokerServer : Node {
     WebSocketMultiplayerPeer Peer;
@@ -46,6 +47,10 @@ public partial class PokerServer : Node {
 
     public override void _Process(double delta) {
         Peer.Poll();
+        if (Peer.GetAvailablePacketCount() == 0) return;
+        byte[] packet = Peer.GetPacket();
+        string msg = Encoding.UTF8.GetString(packet);
+        GD.Print("Server received: ", msg);
     }
 
 }
