@@ -14,12 +14,21 @@ public partial class TableSettings : Resource {
         set => smallBlind = (double)value / BigBlind;
     }
     [Export(PropertyHint.Range, "0, 2, .01")]
+    /// <summary>
+    /// Percent of big blind as the TOTAL ANTE, summed across all players
+    /// </summary>
     private double combinedAnte = 0;
+    /// <summary>
+    /// Number of chips each player must invest as the ante
+    /// </summary>
     public int Ante {
         get => (int)Math.Round(combinedAnte * BigBlind / NumPlayers);
         set => combinedAnte = (double)value / BigBlind / NumPlayers;
     }
     [Export(PropertyHint.Range, "1, 200, .01")]
+    /// <summary>
+    /// Starting stack in big blinds
+    /// </summary>
     private double startStack;
     public int StartStack {
         get => (int)Math.Round(startStack * BigBlind);

@@ -4,7 +4,13 @@
 
 [resource]
 script = ExtResource("1_7u2dh")
-NumPlayers = 2
+NumPlayers = 4
 BigBlind = 2
-SmallBlind = 1
+smallBlind = 0.5
+combinedAnte = 0.0
+startStack = 200.0
+Timer = true
+DecisionTime = 0.0
+TimeBank = 5.0
+TimeBankAdd = 0.5
 metadata/_custom_type_script = "uid://c37cfmsvoa3rq"

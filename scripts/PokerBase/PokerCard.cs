@@ -38,6 +38,8 @@ public class PokerCard {
 	public const int NUM_RANKS = NUM_CARDS / NUM_SUITS;
 	private Card Card;
 	public string Name { get => DetermineName(Card.Color, Card.Type); }
+	public CardType Type { get => Card.Type; }
+	public CardColor Color { get => Card.Color; }
 
 	public PokerCard(int fromInt) {
 		int s = fromInt / NUM_RANKS;
@@ -52,6 +54,10 @@ public class PokerCard {
 		Card = new Card(type, col);
 	}
 	public static Card[] ToCards(PokerCard[] cards) {
-		return (Card[])cards.Select(c => c.Card);
+		return [.. cards.Select(c => c.Card).ToArray()];
 	}
+    public override string ToString() {
+		return Name;
+    }
+
 }

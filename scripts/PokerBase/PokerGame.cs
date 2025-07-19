@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Intrinsics.Arm;
 using System.Security.Cryptography;
+using Godot;
 using HoldemPoker.Cards;
 using HoldemPoker.Evaluator;
 
@@ -11,14 +13,29 @@ public enum Street {PREFLOP, FLOP, TURN, RIVER, ALL_FOLDED, SHOWDOWN};
 
 struct Hand {
     public PokerCard[] Cards;
+    public override string ToString() {
+        String cards = "";
+        foreach (PokerCard curr in Cards) {
+            cards += curr;
+        }
+        return cards;
+    }
 }
 
 struct Player {
+    /// <summary>
+    /// Total amount of money the player has invested in the hand
+    /// </summary>
     public int Invested;
+    /// <summary>
+    /// Amount of (NON-ANTE) money the player has invested this street
+    /// </summary>
+    public int InvestedThisStreet;
     public int Stack;
     public bool Folded;
     public bool SittingIn;
     public Hand Hand;
+    public string Name;
 }
 
 public class PokerGame {
@@ -35,6 +52,7 @@ public class PokerGame {
     int MaxInvested { get => Players.Max(p => p.Invested); }
     int TotalPot { get => Players.Sum(p => p.Invested); }
     int PlayersLeftToAct;
+    int NumCardsOnBoard;
     public int ActivePlayers {
         get {
             int total = 0;
@@ -48,17 +66,17 @@ public class PokerGame {
     }
     bool HandActive;
     bool InitialHand;
-    ModInt ButtonPosition;
-    ModInt SmallBlindPosition {
+    ModInt ButtonPosition {
         get {
             if (NumDealtPlayers == 2) {
-                return ButtonPosition;
+                return SmallBlindPosition;
             } else {
-                return ButtonPosition + 1;
+                return PrevPositionLastHand(SmallBlindPosition);
             }
         }
     }
-    ModInt BigBlindPosition { get => SmallBlindPosition + 1; }
+    ModInt SmallBlindPosition { get => PrevPositionLastHand(BigBlindPosition); }
+    ModInt BigBlindPosition;
     ModInt ActingPosition;
     Street Street;
 
@@ -70,11 +88,19 @@ public class PokerGame {
         for (int i = 0; i < Settings.NumPlayers; i++) {
             Players[i].Stack = Settings.StartStack;
             Players[i].SittingIn = true;
+            Players[i].Name = "Player " + i;
         }
         DealtInPlayers = [];
         RemainingPlayers = [];
         InitialHand = true;
         HandActive = false;
+    }
+
+    ModInt NextPosition(ModInt from) {
+        do {
+            from++;
+        } while (!DealtInPlayers.Contains(from.Val));
+        return from;
     }
 
     ModInt NextPositionLastHand(ModInt from) {
@@ -83,6 +109,19 @@ public class PokerGame {
         } while (!DealtInPlayersLastHand.Contains(from.Val));
         return from;
     }
+
+    ModInt PrevPositionLastHand(ModInt from) {
+        do {
+            from--;
+        } while (!DealtInPlayersLastHand.Contains(from.Val));
+        return from;
+    }
+
+    void DrawBoardCard() {
+        Board[NumCardsOnBoard] = Deck.Draw();
+        NumCardsOnBoard += 1;
+    }
+
     /// <summary>
     /// Deals hands to players and posts blinds
     /// Assumes that there are at least 2 ActivePlayers
@@ -92,34 +131,50 @@ public class PokerGame {
         DealtInPlayers.Clear();
         RemainingPlayers.Clear();
         HandActive = true;
+        NumCardsOnBoard = 0;
         for (int i = 0; i < Settings.NumPlayers; i++) {
             if ((!Players[i].SittingIn) || Players[i].Stack == 0) {
                 continue;
             }
             PokerCard c1 = Deck.Draw();
             PokerCard c2 = Deck.Draw();
+            if (c1.Type < c2.Type) {
+                PokerCard temp = c1;
+                c1 = c2;
+                c2 = temp;
+            }
             Players[i].Hand.Cards = [c1, c2];
             Players[i].Invested = 0;
+            Players[i].InvestedThisStreet = 0;
             Players[i].Folded = false;
             DealtInPlayers.Add(i);
             RemainingPlayers.Add(i);
         }
         foreach (int i in DealtInPlayers) {
             Invest(new ModInt(i, Settings.NumPlayers), Settings.Ante);
+            Players[i].InvestedThisStreet = 0;
         }
-        Invest(SmallBlindPosition, Settings.SmallBlind);
-        Invest(BigBlindPosition, Settings.BigBlind);
+
         if (InitialHand) {
-            ButtonPosition = new ModInt(DealtInPlayers[RandomNumberGenerator.GetInt32(NumDealtPlayers)], Settings.NumPlayers);
+            BigBlindPosition = new ModInt(DealtInPlayers[System.Security.Cryptography.RandomNumberGenerator.GetInt32(NumDealtPlayers)], Settings.NumPlayers);
             DealtInPlayersLastHand = [.. DealtInPlayers];
+            InitialHand = false;
         } else {
-            ButtonPosition = NextPositionLastHand(ButtonPosition);
+            BigBlindPosition = NextPosition(BigBlindPosition);
         }
-        ActingPosition = SmallBlindPosition + 2;
+        ActingPosition = NextPosition(BigBlindPosition);
         CurrentRaiseSize = Settings.BigBlind;
         CurrentBetSize = Settings.BigBlind;
         PlayersLeftToAct = NumDealtPlayers;
         Street = Street.PREFLOP;
+
+        if (DealtInPlayers.Contains(SmallBlindPosition.Val)) {
+            Invest(SmallBlindPosition, Settings.SmallBlind);
+        }
+        Invest(BigBlindPosition, Settings.BigBlind);
+        if (PotIsAllIn()) {
+            HandleAllinPot();
+        }
     }
     /// <summary>
     /// Invest an amount of chips from a given position into the pot
@@ -130,8 +185,9 @@ public class PokerGame {
     int Invest(ModInt position, int amount) {
         int p = position.Val;
         int investable = Math.Min(Players[p].Stack, amount);
-        Players[position.Val].Invested = investable;
+        Players[p].Invested += investable;
         Players[p].Stack -= investable;
+        Players[p].InvestedThisStreet += investable;
         return amount - investable;
     }
     /// <summary>
@@ -152,7 +208,7 @@ public class PokerGame {
                 sortedUniqueInvests[j] -= sortedUniqueInvests[i];
             }
         }
-        int[] invests = (int[])Players.Select(p => p.Invested);
+        int[] invests = [.. Players.Select(p => p.Invested)];
         (int, int)[] sizes = new (int, int)[sortedUniqueInvests.Length];
         for (int i = 0; i < sortedUniqueInvests.Length; i++) {
             int currInvestAmount = sortedUniqueInvests[i];
@@ -195,18 +251,18 @@ public class PokerGame {
     }
 
     bool LegalCall() {
-        return Players[ActingPosition.Val].Invested < MaxInvested;
+        return Players[ActingPosition.Val].InvestedThisStreet < CurrentBetSize;
     }
 
     bool LegalCheck() {
-        return Players[ActingPosition.Val].Invested == MaxInvested;
+        return Players[ActingPosition.Val].InvestedThisStreet == CurrentBetSize;
     }
+
     void SetNextActor() {
         while (true) {
-            ActingPosition++;
-            if (IsAllIn(ActingPosition.Val)) continue;
+            ActingPosition = NextPosition(ActingPosition);
             if (Players[ActingPosition.Val].Folded) continue;
-            if (RemainingPlayers.Contains(ActingPosition.Val)) continue;
+            if (IsAllIn(ActingPosition.Val)) continue;
             break;
         }
     }
@@ -219,7 +275,7 @@ public class PokerGame {
 
     int[] DetermineShowdownWinnings() {
         (int, int)[] potSizes = PotSizes();
-        int[] invests = (int[])Players.Select(p => p.Invested);
+        int[] invests = [.. Players.Select(p => p.Invested)];
         List<int> removed = [];
         int[] awardedAmounts = new int[Settings.NumPlayers];
         foreach ((int currPotSize, int currInvestAmount) in potSizes) {
@@ -273,22 +329,22 @@ public class PokerGame {
         switch (action) {
             case Action.BET:
                 if (!LegalBet(amount)) return false;
-                Bet(amount);
+                InternalBet(amount);
                 break;
             case Action.CALL:
                 if (!LegalCall()) return false;
-                Call();
+                InternalCall();
                 break;
             case Action.CHECK:
                 if (!LegalCheck()) return false;
-                Check();
+                InternalCheck();
                 break;
             case Action.FOLD:
-                Fold();
+                InternalFold();
                 break;
         }
         if (PlayersLeftToAct > 0) { PlayersLeftToAct -= 1; }
-        bool betsMatched = false;
+        bool betsMatched = true;
         if (RemainingPlayers.Count == 1) {
             int remainingPlayer = RemainingPlayers[0];
             int[] winnings = new int[Settings.NumPlayers];
@@ -303,29 +359,33 @@ public class PokerGame {
                 allInPlayers += 1;
                 continue;
             }
-            if (Players[pos].Invested == MaxInvested) continue;
-            betsMatched = true;
-            break;
+            if (Players[pos].InvestedThisStreet != CurrentBetSize) {
+                betsMatched = false;
+                break;
+            }
         }
-        if (!(betsMatched && PlayersLeftToAct == 0)) {
+        bool isAllin = PotIsAllIn();
+        if (isAllin) {
+            HandleAllinPot();
+        } else if (!(betsMatched && PlayersLeftToAct == 0)) {
             SetNextActor();
         } else {
             switch (Street) {
                 case Street.PREFLOP:
                     Street = Street.FLOP;
-                    Board[0] = Deck.Draw();
-                    Board[1] = Deck.Draw();
-                    Board[2] = Deck.Draw();
+                    DrawBoardCard();
+                    DrawBoardCard();
+                    DrawBoardCard();
                     break;
 
                 case Street.FLOP:
                     Street = Street.TURN;
-                    Board[3] = Deck.Draw();
+                    DrawBoardCard();
                     break;
 
                 case Street.TURN:
                     Street = Street.RIVER;
-                    Board[4] = Deck.Draw();
+                    DrawBoardCard();
                     break;
 
                 case Street.RIVER:
@@ -336,55 +396,54 @@ public class PokerGame {
             }
             if (Street != Street.SHOWDOWN) {
                 CurrentBetSize = 0;
-                CurrentRaiseSize = 2;
-                ActingPosition = BigBlindPosition;
+                CurrentRaiseSize = Settings.BigBlind;
+                ActingPosition = ButtonPosition;
                 SetNextActor();
                 PlayersLeftToAct = RemainingPlayers.Count - allInPlayers;
+                foreach (int p in DealtInPlayers) {
+                    Players[p].InvestedThisStreet = 0;
+                }
             }
         }
-        HandleAllinPot();
         return true;
     }
-    void Bet(int amount) {
+    public bool Bet(int amount) {
+        return Act(Action.BET, amount);
+    }
+    public bool Call() {
+        return Act(Action.CALL);
+    }
+    public bool Fold() {
+        return Act(Action.FOLD);
+    }
+    public bool Check() {
+        return Act(Action.CHECK);
+    }
+
+    void InternalBet(int amount) {
         int raiseSize = amount - CurrentBetSize;
-        Invest(ActingPosition, raiseSize);
+        Invest(ActingPosition, amount - Players[ActingPosition.Val].InvestedThisStreet);
         CurrentRaiseSize = raiseSize;
         CurrentBetSize = amount;
     }
-    void Call() {
-        int callAmount = CurrentBetSize - Players[ActingPosition.Val].Invested;
+    void InternalCall() {
+        int callAmount = CurrentBetSize - Players[ActingPosition.Val].InvestedThisStreet;
         Invest(ActingPosition, callAmount);
     }
-    void Fold() {
+    void InternalFold() {
         Players[ActingPosition.Val].Folded = true;
         RemainingPlayers.Remove(ActingPosition.Val);
     }
-    void Check() {
+    void InternalCheck() {
     }
 
     void HandleAllinPot() {
-        if (!PotIsAllIn()) { return; }
-        int remainingCards = 0;
-        switch (Street) {
-            case Street.PREFLOP:
-                remainingCards = 5;
-                break;
-            case Street.FLOP:
-                remainingCards = 2;
-                break;
-            case Street.TURN:
-                remainingCards = 1;
-                break;
-            case Street.RIVER:
-                remainingCards = 0;
-                break;
-        }
-        Street = Street.SHOWDOWN;
-        for (int i = 5 - remainingCards; i < remainingCards; i++) {
-            Board[i] = Deck.Draw();
+        for (int i = NumCardsOnBoard; i < 5; i++) {
+            DrawBoardCard();
         }
         int[] winnings = DetermineShowdownWinnings();
         AwardWinnings(winnings);
+        Street = Street.SHOWDOWN;
     }
 
 
@@ -410,9 +469,30 @@ public class PokerGame {
     }
 
     public override string ToString() {
-        string Stacks = "";
+        string state = "Table State:\n";
         for (int i = 0; i < Settings.NumPlayers; i++) {
-
+            state += Players[i].Name + ": " + Players[i].Stack + " chips (" + Players[i].InvestedThisStreet + ")";
+            if (HandActive && DealtInPlayers.Contains(i)) {
+                state += "\nHand: " + Players[i].Hand;
+                if (Players[i].Folded) { state += " (Folded)"; }
+            }
+            if ((i == Settings.NumPlayers - 1) && !HandActive) {
+                break;
+            } else {
+                state += '\n';
+            }
         }
+        if (HandActive) {
+            state += "Board: ";
+            for (int i = 0; i < NumCardsOnBoard; i++) {
+                state += Board[i];
+                if (i != NumCardsOnBoard - 1) { state += " "; }
+            }
+            state += '\n';
+            state += "Pot: " + TotalPot + '\n';
+            state += "Current Active Bet: " + CurrentBetSize + '\n';
+            state += "Action on: Seat " + ActingPosition.Val;
+        }
+        return state;
     }
 }

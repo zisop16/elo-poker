@@ -1,3 +1,5 @@
+using Godot;
+
 public class ModInt {
     private static int FixedMod(int a, int b) {
         return ((a % b) + b) % b;
@@ -27,16 +29,12 @@ public class ModInt {
         return (-right) + left;
     }
     public static ModInt operator ++(ModInt operand) {
-        ModInt prev = new ModInt(operand);
-        ModInt incremented = operand + 1;
-        operand.Val = incremented.Val;
-        return prev;
+        operand += 1;
+        return operand;
     }
     public static ModInt operator --(ModInt operand) {
-        ModInt prev = new ModInt(operand);
-        ModInt incremented = operand - 1;
-        operand.Val = incremented.Val;
-        return prev;
+        operand -= 1;
+        return operand;
     }
     public static bool operator ==(ModInt left, ModInt right) {
         return left.Val == right.Val;
