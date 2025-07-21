@@ -1,0 +1,79 @@
+[gd_scene load_steps=3 format=3 uid="uid://bgulbvibrl8qo"]
+
+[ext_resource type="Script" uid="uid://cgkxjyc2fhr7h" path="res://scripts/UI/PokerUI.cs" id="1_ivl2k"]
+[ext_resource type="PackedScene" uid="uid://bq8p1lot4rbn3" path="res://scenes/UI/physical_card.tscn" id="2_bx651"]
+
+[node name="PokerUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_ivl2k")
+
+[node name="ActionContainer" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.855
+anchor_right = 0.5
+anchor_bottom = 0.855
+offset_left = -132.5
+offset_top = -15.5
+offset_right = 132.5
+offset_bottom = 15.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 25
+metadata/_edit_use_anchors_ = true
+
+[node name="CallButton" type="Button" parent="ActionContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Call
+"
+
+[node name="BetButton" type="Button" parent="ActionContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Bet 50"
+
+[node name="CheckButton" type="Button" parent="ActionContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Check"
+
+[node name="FoldButton" type="Button" parent="ActionContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Fold
+"
+
+[node name="BoardContainer" type="HBoxContainer" parent="."]
+layout_direction = 2
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.399691
+anchor_right = 0.5
+anchor_bottom = 0.600309
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 30
+metadata/_edit_use_anchors_ = true
+
+[node name="PhysicalCard" parent="BoardContainer" instance=ExtResource("2_bx651")]
+layout_mode = 2
+
+[node name="PhysicalCard2" parent="BoardContainer" instance=ExtResource("2_bx651")]
+layout_mode = 2
+
+[node name="PhysicalCard3" parent="BoardContainer" instance=ExtResource("2_bx651")]
+layout_mode = 2
+
+[node name="PhysicalCard4" parent="BoardContainer" instance=ExtResource("2_bx651")]
+layout_mode = 2
+
+[node name="PhysicalCard5" parent="BoardContainer" instance=ExtResource("2_bx651")]
+layout_mode = 2

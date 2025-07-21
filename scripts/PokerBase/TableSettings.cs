@@ -1,7 +1,8 @@
 using Godot;
 using System;
+using Poker;
 
-[GlobalClass, Icon("res://icons/table_icon.png")]
+[GlobalClass, Icon("res://images/icons/table_icon.png")]
 public partial class TableSettings : Resource {
     [Export(PropertyHint.Range, "2,6,1")]
     public int NumPlayers = 2;

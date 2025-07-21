@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1_7u2dh")
-NumPlayers = 4
+NumPlayers = 2
 BigBlind = 2
 smallBlind = 0.5
 combinedAnte = 0.0

@@ -1,41 +1,18 @@
-[gd_scene load_steps=2 format=3 uid="uid://56h41mdayeql"]
+[gd_scene load_steps=4 format=3 uid="uid://56h41mdayeql"]
 
 [ext_resource type="Script" uid="uid://dyokd1ytjcpx7" path="res://scripts/Networking/PokerClient.cs" id="1_1pxt8"]
+[ext_resource type="PackedScene" uid="uid://bgulbvibrl8qo" path="res://scenes/UI/poker_ui.tscn" id="2_3i8bq"]
+[ext_resource type="Resource" uid="uid://daergiwn8pe0u" path="res://resources/default_table.tres" id="2_n26s5"]
 
-[node name="PokerGame" type="Node2D"]
-script = ExtResource("1_1pxt8")
-
-[node name="Camera2D" type="Camera2D" parent="."]
-
-[node name="Control" type="Control" parent="."]
+[node name="PokerGame" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("1_1pxt8")
+Settings = ExtResource("2_n26s5")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="Control"]
+[node name="PokerUI" parent="." instance=ExtResource("2_3i8bq")]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -105.0
-offset_top = -15.5
-offset_right = 105.0
-offset_bottom = 15.5
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/separation = 10
-
-[node name="TestButton" type="Button" parent="Control/HBoxContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Send Packet"
-
-[node name="TestButton2" type="Button" parent="Control/HBoxContainer"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Send Packet"

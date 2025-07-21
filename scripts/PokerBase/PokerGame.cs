@@ -6,21 +6,25 @@ using System.Security.Cryptography;
 using Godot;
 using HoldemPoker.Cards;
 using HoldemPoker.Evaluator;
+using Poker;
 
-public enum Action { CHECK, CALL, FOLD, BET };
-public enum GameType {HOLDEM, OMAHA};
-public enum Street {PREFLOP, FLOP, TURN, RIVER, ALL_FOLDED, SHOWDOWN};
-
-struct Hand {
-    public PokerCard[] Cards;
-    public override string ToString() {
-        String cards = "";
-        foreach (PokerCard curr in Cards) {
-            cards += curr;
+namespace Poker {
+    public enum Action : byte { CHECK, CALL, FOLD, BET };
+    public enum GameType : byte { HOLDEM, OMAHA };
+    public enum Street : byte { PREFLOP, FLOP, TURN, RIVER, ALL_FOLDED, SHOWDOWN };   
+    public readonly struct Hand(PokerCard[] cards) {
+        public readonly PokerCard[] Cards = cards;
+        public override string ToString() {
+            String cards = "";
+            foreach (PokerCard curr in Cards) {
+                cards += curr;
+            }
+            return cards;
         }
-        return cards;
     }
+
 }
+
 
 struct Player {
     /// <summary>
@@ -143,7 +147,7 @@ public class PokerGame {
                 c1 = c2;
                 c2 = temp;
             }
-            Players[i].Hand.Cards = [c1, c2];
+            Players[i].Hand = new Hand([c1, c2]);
             Players[i].Invested = 0;
             Players[i].InvestedThisStreet = 0;
             Players[i].Folded = false;
@@ -325,21 +329,21 @@ public class PokerGame {
     /// <param name="action"></param>
     /// <param name="amount"></param>
     /// <returns>Whether the action was legal</returns>
-    public bool Act(Action action, int amount = 0) {
+    public bool Act(Poker.Action action, int amount = 0) {
         switch (action) {
-            case Action.BET:
+            case Poker.Action.BET:
                 if (!LegalBet(amount)) return false;
                 InternalBet(amount);
                 break;
-            case Action.CALL:
+            case Poker.Action.CALL:
                 if (!LegalCall()) return false;
                 InternalCall();
                 break;
-            case Action.CHECK:
+            case Poker.Action.CHECK:
                 if (!LegalCheck()) return false;
                 InternalCheck();
                 break;
-            case Action.FOLD:
+            case Poker.Action.FOLD:
                 InternalFold();
                 break;
         }
@@ -408,16 +412,16 @@ public class PokerGame {
         return true;
     }
     public bool Bet(int amount) {
-        return Act(Action.BET, amount);
+        return Act(Poker.Action.BET, amount);
     }
     public bool Call() {
-        return Act(Action.CALL);
+        return Act(Poker.Action.CALL);
     }
     public bool Fold() {
-        return Act(Action.FOLD);
+        return Act(Poker.Action.FOLD);
     }
     public bool Check() {
-        return Act(Action.CHECK);
+        return Act(Poker.Action.CHECK);
     }
 
     void InternalBet(int amount) {

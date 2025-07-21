@@ -1,6 +1,10 @@
-[gd_scene load_steps=2 format=3 uid="uid://4v1kf5xkrbna"]
+[gd_scene load_steps=3 format=3 uid="uid://4v1kf5xkrbna"]
 
 [ext_resource type="Script" uid="uid://c2makdopn5qh" path="res://scripts/Networking/PokerServer.cs" id="1_m3u1i"]
+[ext_resource type="Resource" uid="uid://daergiwn8pe0u" path="res://resources/default_table.tres" id="2_ja7sr"]
 
-[node name="Node" type="Node"]
+[node name="Server" type="Node"]
 script = ExtResource("1_m3u1i")
+HeadsUp = ExtResource("2_ja7sr")
+
+[node name="Lobbies" type="Node" parent="."]
