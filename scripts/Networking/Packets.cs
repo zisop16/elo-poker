@@ -22,8 +22,7 @@ public readonly struct LobbyStartPacket(TablePreset preset, int seatNumber, Poke
     public TableSettings Settings { get => TableSettings.GetPreset(Preset); }
     public readonly int SeatNumber = seatNumber;
     public readonly int BigBlindPosition = game.BigBlindPosition.Val;
-    [MarshalAs(UnmanagedType.ByValArray, SizeConst = TableSettings.MAX_PLAYERS)]
-    public readonly Hand[] Hands = game.PlayerHands;
+    public readonly Hand Hand = game.Players[seatNumber].Hand;
     [MarshalAs(UnmanagedType.ByValArray, SizeConst = TableSettings.MAX_PLAYERS)]
     public readonly int[] PlayerIDs = game.PlayerIDs;
 }

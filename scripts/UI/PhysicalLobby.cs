@@ -4,17 +4,18 @@ using System;
 using System.Collections.Generic;
 
 public partial class PhysicalLobby : Control {
-
-    NetworkClient Client { get => GetParent<NetworkClient>(); }
-
+    [Signal]
+    public delegate void JoinedLobbyEventHandler();
+    public PokerGame Game;
     HBoxContainer BoardContainer;
     int LastDrawn;
+    public int SeatNumber { get; private set; }
     PhysicalCard[] Board = new PhysicalCard[5];
     Button CallButton;
     Button BetButton;
     Button FoldButton;
     Button CheckButton;
-    TextEdit ChipsInput;
+    ChipsInput ChipsInput;
 
     public override void _Ready() {
         CallButton = GetNode<Button>("%CallButton");
@@ -25,7 +26,7 @@ public partial class PhysicalLobby : Control {
         FoldButton.ButtonDown += Fold;
         CheckButton = GetNode<Button>("%CheckButton");
         CheckButton.ButtonDown += Check;
-        ChipsInput = GetNode<TextEdit>("%ChipsInput");
+        ChipsInput = GetNode<ChipsInput>("%ChipsInput");
 
         BoardContainer = GetNode<HBoxContainer>("%BoardContainer");
         Godot.Collections.Array<Node> board = BoardContainer.GetChildren();
@@ -49,24 +50,26 @@ public partial class PhysicalLobby : Control {
     }
 
     void Call() {
-        Client.HandleAction(Poker.Action.CALL);
+        Global.Client.HandleAction(Poker.Action.CALL);
     }
     void Bet() {
         int amount = 50;
-        Client.HandleAction(Poker.Action.BET, amount);
+        Global.Client.HandleAction(Poker.Action.BET, amount);
     }
     void Check() {
-        Client.HandleAction(Poker.Action.CHECK);
+        Global.Client.HandleAction(Poker.Action.CHECK);
     }
     void Fold() {
-        Client.HandleAction(Poker.Action.FOLD);
+        Global.Client.HandleAction(Poker.Action.FOLD);
     }
 
     public void HandleLobbyStart(LobbyStartPacket pack) {
-        Hand[] hands = pack.Hands;
+        Hand hand = pack.Hand;
         int[] ids = pack.PlayerIDs;
         TableSettings settings = pack.Settings;
-        PokerGame game = new(settings, ids);
+        SeatNumber = pack.SeatNumber;
+        Game = new(settings, ids);
         GD.Print("Joined Lobby");
+        EmitSignal(SignalName.JoinedLobby);
     }
 }

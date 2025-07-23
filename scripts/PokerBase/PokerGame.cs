@@ -58,10 +58,10 @@ public partial class PokerGame {
     List<int> DealtInPlayersLastHand;
     List<int> RemainingPlayers;
     int NumDealtPlayers { get => DealtInPlayers.Count; }
-    int CurrentRaiseSize;
-    int CurrentBetSize;
+    public int CurrentRaiseSize { get; private set; }
+    public int CurrentBetSize { get; private set; }
     int MaxInvested { get => Players.Max(p => p.Invested); }
-    int TotalPot { get => Players.Sum(p => p.Invested); }
+    public int TotalPot { get => Players.Sum(p => p.Invested); }
     int PlayersLeftToAct;
     public int NumCardsOnBoard { get; private set; }
     public int ActivePlayers {
@@ -147,11 +147,16 @@ public partial class PokerGame {
         return from;
     }
 
-    void DrawBoardCard(PokerCard? force = null) {
-        if (force == null) {
+    PokerCard? NextForce = null;
+    public void ForceNextBoardCard(PokerCard force) {
+        NextForce = force;
+    }
+    void DrawBoardCard() {
+        if (NextForce == null) {
             Board[NumCardsOnBoard] = Deck.Draw();
         } else {
-            Board[NumCardsOnBoard] = force.Value;
+            Board[NumCardsOnBoard] = NextForce.Value;
+            NextForce = null;
         }
         NumCardsOnBoard += 1;
     }
@@ -159,7 +164,7 @@ public partial class PokerGame {
     /// <summary>
     /// Deals hands to players and posts blinds, assumes that there are at least 2 ActivePlayers
     /// </summary>
-    public void Deal(Hand[] force = null) {
+    public void Deal(Tuple<int, Hand> forceHand = null, int? forceBigBlind = null) {
         Deck.Shuffle();
         DealtInPlayers.Clear();
         RemainingPlayers.Clear();
@@ -169,17 +174,15 @@ public partial class PokerGame {
             if ((!Players[i].SittingIn) || Players[i].Stack == 0) {
                 continue;
             }
-            if (force == null) {
+            if ((forceHand == null) || (forceHand.Item1 != i)) {
                 PokerCard c1 = Deck.Draw();
                 PokerCard c2 = Deck.Draw();
                 if (c1.Type < c2.Type) {
-                    PokerCard temp = c1;
-                    c1 = c2;
-                    c2 = temp;
+                    (c2, c1) = (c1, c2);
                 }
                 Players[i].Hand = new Hand((c1, c2));
             } else {
-                Players[i].Hand = force[i];
+                Players[i].Hand = forceHand.Item2;
             }
             Players[i].Invested = 0;
             Players[i].InvestedThisStreet = 0;
@@ -193,7 +196,11 @@ public partial class PokerGame {
         }
 
         if (InitialHand) {
-            BigBlindPosition = new ModInt(DealtInPlayers[System.Security.Cryptography.RandomNumberGenerator.GetInt32(NumDealtPlayers)], Settings.NumPlayers);
+            if (forceBigBlind == null) {
+                BigBlindPosition = new ModInt(DealtInPlayers[System.Security.Cryptography.RandomNumberGenerator.GetInt32(NumDealtPlayers)], Settings.NumPlayers);
+            } else {
+                BigBlindPosition = new ModInt(forceBigBlind.Value, Settings.NumPlayers);
+            }
             DealtInPlayersLastHand = [.. DealtInPlayers];
             InitialHand = false;
         } else {
@@ -268,10 +275,11 @@ public partial class PokerGame {
         if (amount > Players[ActingPosition.Val].Stack) {
             return false;
         }
-        int raiseSize = amount - CurrentBetSize;
-        if (raiseSize == Players[ActingPosition.Val].Stack) {
+        int additionalChips = amount - Players[ActingPosition.Val].InvestedThisStreet;
+        if (additionalChips == Players[ActingPosition.Val].Stack) {
             return true;
         }
+        int raiseSize = amount - CurrentBetSize;
         if (raiseSize < CurrentRaiseSize) {
             return false;
         }
@@ -458,8 +466,10 @@ public partial class PokerGame {
     }
 
     void InternalBet(int amount) {
+        int additionalChips = amount - Players[ActingPosition.Val].InvestedThisStreet;
+        Invest(ActingPosition, additionalChips);
+        if (amount < CurrentBetSize) return;
         int raiseSize = amount - CurrentBetSize;
-        Invest(ActingPosition, amount - Players[ActingPosition.Val].InvestedThisStreet);
         CurrentRaiseSize = raiseSize;
         CurrentBetSize = amount;
     }

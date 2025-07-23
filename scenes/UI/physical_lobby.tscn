@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://08gl2eklo832"]
+[gd_scene load_steps=5 format=3 uid="uid://08gl2eklo832"]
 
 [ext_resource type="Script" uid="uid://cgkxjyc2fhr7h" path="res://scripts/UI/PhysicalLobby.cs" id="1_aoi28"]
 [ext_resource type="PackedScene" uid="uid://bq8p1lot4rbn3" path="res://scenes/UI/physical_card.tscn" id="2_bvfni"]
+[ext_resource type="Script" uid="uid://deciaj3jj7kec" path="res://scripts/UI/ChipsInput.cs" id="3_kk8em"]
 
 [sub_resource type="StyleBoxLine" id="StyleBoxLine_xj5tl"]
 color = Color(0.2, 0.143333, 0, 1)
@@ -98,14 +99,15 @@ grow_vertical = 0
 [node name="HSizingContainer" type="HBoxContainer" parent="VActionContainer"]
 layout_mode = 2
 
-[node name="ChipsInput" type="TextEdit" parent="VActionContainer/HSizingContainer"]
+[node name="ChipsInput" type="LineEdit" parent="VActionContainer/HSizingContainer"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 60)
+custom_minimum_size = Vector2(0, 35)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_font_sizes/font_size = 30
-text = "fgr"
+theme_override_font_sizes/font_size = 20
+placeholder_text = "Bet Amount"
+script = ExtResource("3_kk8em")
 
 [node name="Space" type="Control" parent="VActionContainer/HSizingContainer"]
 layout_mode = 2

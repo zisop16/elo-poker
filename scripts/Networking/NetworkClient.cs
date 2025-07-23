@@ -10,7 +10,7 @@ public partial class NetworkClient : Control {
         Peer.CreateClient(NetworkServer.SERVER_URL, opt);
     }
 
-    PhysicalLobby Lobby;
+    public PhysicalLobby Lobby { get; private set; }
     PhysicalQueue Queue;
 
     public override void _Ready() {
@@ -20,6 +20,7 @@ public partial class NetworkClient : Control {
         Lobby = GetNode<PhysicalLobby>("PhysicalLobby");
         Queue = GetNode<PhysicalQueue>("PhysicalQueue");
         SetActive(Lobby, false);
+        Global.Client = this;
     }
 
     public void HandleAction(Poker.Action action, int amount = 0) {

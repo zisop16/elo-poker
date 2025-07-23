@@ -4,7 +4,6 @@ using System;
 public partial class PhysicalQueue : Control {
     Label QueueLabel;
     Button JoinButton;
-    NetworkClient Client { get => GetParent<NetworkClient>(); }
     bool InQueue = false;
     public override void _Ready() {
         JoinButton = GetNode<Button>("%JoinButton");
@@ -14,7 +13,7 @@ public partial class PhysicalQueue : Control {
 
     void JoinQueue() {
         if (InQueue) return;
-        Client.JoinQueue();
+        Global.Client.JoinQueue();
         QueueLabel.Text = "In Queue";
         InQueue = true;
         GD.Print("Joined Queue");
