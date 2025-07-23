@@ -1,9 +1,21 @@
 using Godot;
 using System;
 using Poker;
+using System.Collections.Generic;
+
+public enum TablePreset { NONE, HEADS_UP };
 
 [GlobalClass, Icon("res://images/icons/table_icon.png")]
 public partial class TableSettings : Resource {
+    const string SETTINGS_LOCATION = "res://resources/table_settings/";
+    static Dictionary<TablePreset, string> TableSettingNames = new(){
+        {TablePreset.HEADS_UP, "headsup_default" }
+    };
+    public static TableSettings GetPreset(TablePreset preset) {
+        string filePath = SETTINGS_LOCATION + TableSettingNames[preset] + ".tres";
+        return GD.Load<TableSettings>(filePath);
+    }
+    public const int MAX_PLAYERS = 6;
     [Export(PropertyHint.Range, "2,6,1")]
     public int NumPlayers = 2;
     [Export(PropertyHint.Range, "1, 100, 1")]

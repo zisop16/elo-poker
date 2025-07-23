@@ -4,9 +4,8 @@ using System.Text;
 using Poker;
 using System.Collections.Generic;
 
-public partial class PokerServer : Node {
+public partial class NetworkServer : Node {
     WebSocketMultiplayerPeer Peer;
-    Node Lobbies;
     public const int PORT = 42069;
     public const string IP_ADDRESS = "localhost";
     public static readonly string SERVER_URL = "wss://" + IP_ADDRESS + ":" + PORT;
@@ -15,7 +14,6 @@ public partial class PokerServer : Node {
 
     public override void _Ready() {
         StartServer();
-        Lobbies = GetNode("Lobbies");
         GD.Print("Server Started");
     }
 
@@ -52,7 +50,8 @@ public partial class PokerServer : Node {
             switch (type) {
                 case PacketType.ACTION:
                     ActionPacket actPack = Packet.FromBytes<ActionPacket>(rawBytes);
-                    HandleAction(actPack, source);
+                    ActionError result = HandleAction(actPack, source);
+                    GD.Print("Action result: ", result);
                     break;
                 case PacketType.JOIN:
                     JoinPacket joinPack = Packet.FromBytes<JoinPacket>(rawBytes);
@@ -62,23 +61,32 @@ public partial class PokerServer : Node {
         }
     }
 
-    void HandleAction(ActionPacket pack, int peerID) {
+    enum ActionError { NotInGame, NotCurrentTurn, InvalidAction, Success };
+    ActionError HandleAction(ActionPacket pack, int peerID) {
+        if (!PlayerIDLobby.TryGetValue(peerID, out NetworkLobby lobby)) return ActionError.NotInGame;
+        if (!lobby.PlayerIsActing(peerID)) return ActionError.NotCurrentTurn;
         Poker.Action action = pack.Action;
+        bool success = false;
         switch (action) {
             case Poker.Action.CHECK:
-                GD.Print("Check");
+                success = lobby.Check();
                 break;
             case Poker.Action.BET:
-                uint amount = pack.Amount;
-                GD.Print("Bet ", amount);
+                int amount = pack.Amount;
+                success = lobby.Bet(amount);
                 break;
             case Poker.Action.CALL:
-                GD.Print("Call");
+                success = lobby.Call();
                 break;
             case Poker.Action.FOLD:
-                GD.Print("Fold");
+                success = lobby.Fold();
                 break;
         }
+        if (success) {
+            GD.Print(action, '\n', lobby.Game);
+            return ActionError.Success;
+        }
+        return ActionError.InvalidAction;
     }
 
     readonly struct QueuedPlayer(int peerID) {
@@ -87,11 +95,10 @@ public partial class PokerServer : Node {
         readonly double TimeQueued { get => Global.Time - queueStart; }
     }
 
-    List<QueuedPlayer> PlayerQueue = [];
+    readonly List<QueuedPlayer> PlayerQueue = [];
     enum JoinError : byte {
         Success, LobbyFull, AlreadyJoined
     }
-
 
     JoinError HandleJoin(JoinPacket pack, int peerID) {
         if (PlayerQueue.Exists(x => x.PeerID == peerID)) return JoinError.AlreadyJoined;
@@ -101,10 +108,12 @@ public partial class PokerServer : Node {
 
     [Export]
     TableSettings HeadsUp;
-    TableSettings NextGameSettings = null;
-    readonly List<PokerLobby> RunningLobbies = [];
+    TablePreset NextGamePreset = TablePreset.NONE;
+    TableSettings NextGameSettings { get => TableSettings.GetPreset(NextGamePreset); }
+    readonly List<NetworkLobby> RunningLobbies = [];
+    readonly Dictionary<int, NetworkLobby> PlayerIDLobby = [];
     void SelectNextGame() {
-        NextGameSettings = HeadsUp;
+        NextGamePreset = TablePreset.HEADS_UP;
     }
 
     /// <summary>
@@ -114,25 +123,37 @@ public partial class PokerServer : Node {
     int[] NextPlayerSet() {
         int requiredCount = NextGameSettings.NumPlayers;
         int currentCount = PlayerQueue.Count;
-        if (requiredCount < currentCount) return null;
+        if (currentCount < requiredCount) return null;
         int[] players = new int[requiredCount];
         for (int i = 0; i < requiredCount; i++) {
             int QueueInd = PlayerQueue.Count - 1;
             QueuedPlayer curr = PlayerQueue[QueueInd];
-            PlayerQueue.RemoveAt(i);
+            PlayerQueue.RemoveAt(QueueInd);
             players[i] = curr.PeerID;
         }
         return players;
     }
 
     void HandlePlayerQueue() {
-        if (NextGameSettings == null) SelectNextGame();
+        if (NextGamePreset == TablePreset.NONE) SelectNextGame();
         int[] players = NextPlayerSet();
         if (players == null) return;
-        PokerLobby lobby = new(NextGameSettings, players);
-        RunningLobbies.Add(lobby);
-        NextGameSettings = null;
+        StartLobby(players);
         HandlePlayerQueue();
+    }
+
+    void StartLobby(int[] players) {
+        NetworkLobby lobby = new(NextGameSettings, players);
+        RunningLobbies.Add(lobby);
+        lobby.Deal();
+        for(int i = 0; i < NextGameSettings.NumPlayers; i++) {
+            int p = players[i];
+            LobbyStartPacket pack = new(TablePreset.HEADS_UP, i, lobby.Game);
+            Peer.SetTargetPeer(p);
+            Peer.PutPacket(Packet.ToBytes(pack));
+            PlayerIDLobby.Add(p, lobby);
+        }
+        NextGamePreset = TablePreset.NONE;
     }
 
     public override void _Process(double delta) {

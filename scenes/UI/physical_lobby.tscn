@@ -1,0 +1,140 @@
+[gd_scene load_steps=4 format=3 uid="uid://08gl2eklo832"]
+
+[ext_resource type="Script" uid="uid://cgkxjyc2fhr7h" path="res://scripts/UI/PhysicalLobby.cs" id="1_aoi28"]
+[ext_resource type="PackedScene" uid="uid://bq8p1lot4rbn3" path="res://scenes/UI/physical_card.tscn" id="2_bvfni"]
+
+[sub_resource type="StyleBoxLine" id="StyleBoxLine_xj5tl"]
+color = Color(0.2, 0.143333, 0, 1)
+thickness = 2
+
+[node name="PhysicalLobby" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_aoi28")
+
+[node name="VBoardContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.45
+anchor_right = 0.5
+anchor_bottom = 0.55
+offset_left = -30.0
+offset_top = -20.0
+offset_right = 30.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoardContainer"]
+layout_mode = 2
+
+[node name="TotalPot" type="Label" parent="VBoardContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Total Pot: "
+
+[node name="Control" type="Control" parent="VBoardContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="PotAmount" type="Label" parent="VBoardContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.45
+text = "0 chips"
+
+[node name="HSeparator" type="HSeparator" parent="VBoardContainer"]
+layout_mode = 2
+theme_override_constants/separation = 3
+theme_override_styles/separator = SubResource("StyleBoxLine_xj5tl")
+
+[node name="VSpace" type="Control" parent="VBoardContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+size_flags_stretch_ratio = 0.05
+
+[node name="BoardContainer" type="HBoxContainer" parent="VBoardContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 15
+alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="PhysicalCard" parent="VBoardContainer/BoardContainer" instance=ExtResource("2_bvfni")]
+layout_mode = 2
+
+[node name="PhysicalCard2" parent="VBoardContainer/BoardContainer" instance=ExtResource("2_bvfni")]
+layout_mode = 2
+
+[node name="PhysicalCard3" parent="VBoardContainer/BoardContainer" instance=ExtResource("2_bvfni")]
+layout_mode = 2
+
+[node name="PhysicalCard4" parent="VBoardContainer/BoardContainer" instance=ExtResource("2_bvfni")]
+layout_mode = 2
+
+[node name="PhysicalCard5" parent="VBoardContainer/BoardContainer" instance=ExtResource("2_bvfni")]
+layout_mode = 2
+
+[node name="VActionContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -263.0
+offset_top = -80.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="HSizingContainer" type="HBoxContainer" parent="VActionContainer"]
+layout_mode = 2
+
+[node name="ChipsInput" type="TextEdit" parent="VActionContainer/HSizingContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 30
+text = "fgr"
+
+[node name="Space" type="Control" parent="VActionContainer/HSizingContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.4
+
+[node name="HActionContainer" type="HBoxContainer" parent="VActionContainer"]
+layout_mode = 2
+theme_override_constants/separation = 25
+metadata/_edit_use_anchors_ = true
+
+[node name="CallButton" type="Button" parent="VActionContainer/HActionContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Call
+"
+
+[node name="BetButton" type="Button" parent="VActionContainer/HActionContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Bet"
+
+[node name="CheckButton" type="Button" parent="VActionContainer/HActionContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Check"
+
+[node name="FoldButton" type="Button" parent="VActionContainer/HActionContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Fold
+"

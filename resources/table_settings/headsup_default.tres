@@ -1,14 +1,14 @@
 [gd_resource type="Resource" script_class="TableSettings" load_steps=2 format=3 uid="uid://daergiwn8pe0u"]
 
-[ext_resource type="Script" uid="uid://c37cfmsvoa3rq" path="res://scripts/PokerBase/TableSettings.cs" id="1_7u2dh"]
+[ext_resource type="Script" uid="uid://c37cfmsvoa3rq" path="res://scripts/PokerBase/TableSettings.cs" id="1_ydnu0"]
 
 [resource]
-script = ExtResource("1_7u2dh")
+script = ExtResource("1_ydnu0")
 NumPlayers = 2
-BigBlind = 2
+BigBlind = 10
 smallBlind = 0.5
-combinedAnte = 0.0
-startStack = 200.0
+combinedAnte = 1.1
+startStack = 100.0
 Timer = true
 DecisionTime = 0.0
 TimeBank = 5.0

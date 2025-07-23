@@ -1,6 +1,6 @@
 using System.Linq;
 using HoldemPoker.Cards;
-public class PokerCard {
+public struct PokerCard {
 	public static string ColorName(CardColor color, bool longForm = false) {
 		switch (color) {
 			case CardColor.Spade:
@@ -54,10 +54,21 @@ public class PokerCard {
 	public const int NUM_CARDS = 52;
 	public const int NUM_SUITS = 4;
 	public const int NUM_RANKS = NUM_CARDS / NUM_SUITS;
-	private Card Card;
+	private readonly Card Card;
 	public string Name { get => DetermineName(Card.Color, Card.Type); }
 	public CardType Type { get => Card.Type; }
 	public CardColor Color { get => Card.Color; }
+	public static implicit operator byte(PokerCard c)
+    {
+        return (byte)c;
+    }
+	public static explicit operator PokerCard(byte b) {
+		return new PokerCard((Card)b);
+	}
+
+	public PokerCard(Card c) {
+		Card = c;
+	}
 
 	public PokerCard(int fromInt) {
 		int s = fromInt / NUM_RANKS;

@@ -1,0 +1,22 @@
+[gd_scene load_steps=4 format=3 uid="uid://ctiyo4ci4c3oe"]
+
+[ext_resource type="Script" uid="uid://b423egmmq3c8v" path="res://scripts/Networking/NetworkClient.cs" id="1_p8gm7"]
+[ext_resource type="PackedScene" uid="uid://08gl2eklo832" path="res://scenes/UI/physical_lobby.tscn" id="3_bfila"]
+[ext_resource type="PackedScene" uid="uid://dmiuci0dmq0bf" path="res://scenes/UI/physical_queue.tscn" id="3_vpx41"]
+
+[node name="PhysicalClient" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_p8gm7")
+
+[node name="PhysicalLobby" parent="." instance=ExtResource("3_bfila")]
+visible = false
+layout_mode = 1
+
+[node name="PhysicalQueue" parent="." instance=ExtResource("3_vpx41")]
+layout_mode = 1

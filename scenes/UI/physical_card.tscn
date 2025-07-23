@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://c183jhon7hef1" path="res://scripts/UI/PhysicalCard.cs" id="2_sl6eh"]
 
 [node name="PhysicalCard" type="TextureRect"]
-size_flags_horizontal = 0
+anchors_preset = -1
 texture = ExtResource("1_vlbw6")
 expand_mode = 3
 stretch_mode = 4

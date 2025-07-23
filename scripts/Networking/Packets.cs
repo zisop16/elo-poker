@@ -1,17 +1,31 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
+using Poker;
 
-public enum PacketType : byte { ACTION, JOIN };
+public enum PacketType : byte { ACTION, JOIN, LOBBY_START };
 
-public readonly struct ActionPacket(Poker.Action action, uint amount = 0) {
+public readonly struct ActionPacket(Poker.Action action, int amount = 0) {
     public readonly PacketType Type = PacketType.ACTION;
     public readonly Poker.Action Action = action;
-    public readonly uint Amount = amount;
+    public readonly int Amount = amount;
 }
 
 public readonly struct JoinPacket() {
     public readonly PacketType Type = PacketType.JOIN;
+}
+
+public readonly struct LobbyStartPacket(TablePreset preset, int seatNumber, PokerGame game) {
+    public readonly PacketType Type = PacketType.LOBBY_START;
+    readonly TablePreset Preset = preset;
+    public TableSettings Settings { get => TableSettings.GetPreset(Preset); }
+    public readonly int SeatNumber = seatNumber;
+    public readonly int BigBlindPosition = game.BigBlindPosition.Val;
+    [MarshalAs(UnmanagedType.ByValArray, SizeConst = TableSettings.MAX_PLAYERS)]
+    public readonly Hand[] Hands = game.PlayerHands;
+    [MarshalAs(UnmanagedType.ByValArray, SizeConst = TableSettings.MAX_PLAYERS)]
+    public readonly int[] PlayerIDs = game.PlayerIDs;
 }
 
 public static class Packet {
@@ -22,22 +36,18 @@ public static class Packet {
     /// <typeparam name="T"></typeparam>
     /// <param name="reader"></param>
     /// <returns></returns>
-    public static T FromBytes<T>(byte[] arr)
-    {
+    public static T FromBytes<T>(byte[] arr) {
         T pack;
 
         int size = Marshal.SizeOf(typeof(T));
         IntPtr ptr = IntPtr.Zero;
-        try
-        {
+        try {
             ptr = Marshal.AllocHGlobal(size);
 
             Marshal.Copy(arr, 0, ptr, size);
 
             pack = (T)Marshal.PtrToStructure(ptr, typeof(T));
-        }
-        finally
-        {
+        } finally {
             Marshal.FreeHGlobal(ptr);
         }
         return pack;
@@ -47,14 +57,11 @@ public static class Packet {
         byte[] arr = new byte[size];
 
         IntPtr ptr = IntPtr.Zero;
-        try
-        {
+        try {
             ptr = Marshal.AllocHGlobal(size);
             Marshal.StructureToPtr(pack, ptr, true);
             Marshal.Copy(ptr, arr, 0, size);
-        }
-        finally
-        {
+        } finally {
             Marshal.FreeHGlobal(ptr);
         }
         return arr;

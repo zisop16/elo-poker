@@ -2,9 +2,9 @@
 
 [ext_resource type="Script" uid="uid://btqcodnwqu7np" path="res://scripts/Networking/SceneSwitcher.cs" id="1_oanpq"]
 [ext_resource type="PackedScene" uid="uid://4v1kf5xkrbna" path="res://scenes/server.tscn" id="2_fmggq"]
-[ext_resource type="PackedScene" uid="uid://56h41mdayeql" path="res://scenes/poker_game.tscn" id="3_irs10"]
+[ext_resource type="PackedScene" uid="uid://ctiyo4ci4c3oe" path="res://scenes/UI/physical_client.tscn" id="3_fmggq"]
 
 [node name="SceneSwitcher" type="Node"]
 script = ExtResource("1_oanpq")
 ServerScene = ExtResource("2_fmggq")
-ClientScene = ExtResource("3_irs10")
+ClientScene = ExtResource("3_fmggq")

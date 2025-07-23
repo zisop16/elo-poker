@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Runtime.Intrinsics.Arm;
 using System.Security.Cryptography;
 using Godot;
@@ -11,42 +12,48 @@ using Poker;
 namespace Poker {
     public enum Action : byte { CHECK, CALL, FOLD, BET };
     public enum GameType : byte { HOLDEM, OMAHA };
-    public enum Street : byte { PREFLOP, FLOP, TURN, RIVER, ALL_FOLDED, SHOWDOWN };   
-    public readonly struct Hand(PokerCard[] cards) {
-        public readonly PokerCard[] Cards = cards;
+    public enum Street : byte { PREFLOP, FLOP, TURN, RIVER, ALL_FOLDED, SHOWDOWN };
+    public readonly struct Hand((PokerCard, PokerCard) cards) {
+        public readonly PokerCard Card1 = cards.Item1;
+        public readonly PokerCard Card2 = cards.Item2;
+        public readonly (PokerCard, PokerCard) Cards { get => (Card1, Card2); }
         public override string ToString() {
-            String cards = "";
-            foreach (PokerCard curr in Cards) {
-                cards += curr;
-            }
-            return cards;
+            return Cards.ToString();
+        }
+        public static implicit operator char(Hand h) {
+            int b1 = h.Cards.Item1;
+            int b2 = h.Cards.Item2;
+            int bytes = b1 << 8 + b2;
+            return (char)(bytes & 0xFF);
+        }
+        public static explicit operator Hand(char c) {
+            byte b1 = (byte)(c & 0xF0);
+            byte b2 = (byte)(c & 0x0F);
+            return new Hand(((PokerCard)b1, (PokerCard)b2));
         }
     }
-
+    public struct Player {
+        /// <summary>
+        /// Total amount of money the player has invested in the hand
+        /// </summary>
+        public int Invested;
+        /// <summary>
+        /// Amount of (NON-ANTE) money the player has invested this street
+        /// </summary>
+        public int InvestedThisStreet;
+        public int Stack;
+        public bool Folded;
+        public bool SittingIn;
+        public Hand Hand;
+        public int ID;
+    }
 }
 
-
-struct Player {
-    /// <summary>
-    /// Total amount of money the player has invested in the hand
-    /// </summary>
-    public int Invested;
-    /// <summary>
-    /// Amount of (NON-ANTE) money the player has invested this street
-    /// </summary>
-    public int InvestedThisStreet;
-    public int Stack;
-    public bool Folded;
-    public bool SittingIn;
-    public Hand Hand;
-    public string Name;
-}
-
-public class PokerGame {
+public partial class PokerGame {
     public Deck Deck;
     TableSettings Settings;
     PokerCard[] Board;
-    Player[] Players;
+    public Player[] Players{ get; private set; }
     List<int> DealtInPlayers;
     List<int> DealtInPlayersLastHand;
     List<int> RemainingPlayers;
@@ -56,7 +63,7 @@ public class PokerGame {
     int MaxInvested { get => Players.Max(p => p.Invested); }
     int TotalPot { get => Players.Sum(p => p.Invested); }
     int PlayersLeftToAct;
-    int NumCardsOnBoard;
+    public int NumCardsOnBoard { get; private set; }
     public int ActivePlayers {
         get {
             int total = 0;
@@ -68,9 +75,9 @@ public class PokerGame {
             return total;
         }
     }
-    bool HandActive;
+    public bool HandActive;
     bool InitialHand;
-    ModInt ButtonPosition {
+    public ModInt ButtonPosition {
         get {
             if (NumDealtPlayers == 2) {
                 return SmallBlindPosition;
@@ -79,12 +86,31 @@ public class PokerGame {
             }
         }
     }
-    ModInt SmallBlindPosition { get => PrevPositionLastHand(BigBlindPosition); }
-    ModInt BigBlindPosition;
-    ModInt ActingPosition;
-    Street Street;
+    public ModInt SmallBlindPosition { get => PrevPositionLastHand(BigBlindPosition); }
+    public ModInt BigBlindPosition { get; private set; }
+    public ModInt ActingPosition { get; private set; }
+    public Street Street { get; private set; }
+    public int ActingPlayer { get => Players[ActingPosition.Val].ID; }
+    public Hand[] PlayerHands {
+        get {
+            Hand[] hands = new Hand[TableSettings.MAX_PLAYERS];
+            for (int i = 0; i < Settings.NumPlayers; i++) {
+                hands[i] = Players[i].Hand;
+            }
+            return hands;
+        }
+    }
+    public int[] PlayerIDs {
+        get {
+            int[] ids = new int[TableSettings.MAX_PLAYERS];
+            for (int i = 0; i < Settings.NumPlayers; i++) {
+                ids[i] = Players[i].ID;
+            }
+            return ids;
+        }
+    }
 
-    public PokerGame(TableSettings settings) {
+    public PokerGame(TableSettings settings, int[] playerIDs) {
         Settings = settings;
         Deck = new Deck();
         Board = new PokerCard[5];
@@ -92,7 +118,7 @@ public class PokerGame {
         for (int i = 0; i < Settings.NumPlayers; i++) {
             Players[i].Stack = Settings.StartStack;
             Players[i].SittingIn = true;
-            Players[i].Name = "Player " + i;
+            Players[i].ID = playerIDs[i];
         }
         DealtInPlayers = [];
         RemainingPlayers = [];
@@ -121,16 +147,19 @@ public class PokerGame {
         return from;
     }
 
-    void DrawBoardCard() {
-        Board[NumCardsOnBoard] = Deck.Draw();
+    void DrawBoardCard(PokerCard? force = null) {
+        if (force == null) {
+            Board[NumCardsOnBoard] = Deck.Draw();
+        } else {
+            Board[NumCardsOnBoard] = force.Value;
+        }
         NumCardsOnBoard += 1;
     }
 
     /// <summary>
-    /// Deals hands to players and posts blinds
-    /// Assumes that there are at least 2 ActivePlayers
+    /// Deals hands to players and posts blinds, assumes that there are at least 2 ActivePlayers
     /// </summary>
-    public void Deal() {
+    public void Deal(Hand[] force = null) {
         Deck.Shuffle();
         DealtInPlayers.Clear();
         RemainingPlayers.Clear();
@@ -140,14 +169,18 @@ public class PokerGame {
             if ((!Players[i].SittingIn) || Players[i].Stack == 0) {
                 continue;
             }
-            PokerCard c1 = Deck.Draw();
-            PokerCard c2 = Deck.Draw();
-            if (c1.Type < c2.Type) {
-                PokerCard temp = c1;
-                c1 = c2;
-                c2 = temp;
+            if (force == null) {
+                PokerCard c1 = Deck.Draw();
+                PokerCard c2 = Deck.Draw();
+                if (c1.Type < c2.Type) {
+                    PokerCard temp = c1;
+                    c1 = c2;
+                    c2 = temp;
+                }
+                Players[i].Hand = new Hand((c1, c2));
+            } else {
+                Players[i].Hand = force[i];
             }
-            Players[i].Hand = new Hand([c1, c2]);
             Players[i].Invested = 0;
             Players[i].InvestedThisStreet = 0;
             Players[i].Folded = false;
@@ -272,7 +305,7 @@ public class PokerGame {
     }
     int DetermineHandRanking(int playerInd) {
         Player p = Players[playerInd];
-        Card[] cards = PokerCard.ToCards([.. p.Hand.Cards, .. Board]);
+        Card[] cards = PokerCard.ToCards([p.Hand.Cards.Item1, p.Hand.Cards.Item2, .. Board]);
         int rank = HoldemHandEvaluator.GetHandRanking(cards);
         return rank;
     }
@@ -475,7 +508,7 @@ public class PokerGame {
     public override string ToString() {
         string state = "Table State:\n";
         for (int i = 0; i < Settings.NumPlayers; i++) {
-            state += Players[i].Name + ": " + Players[i].Stack + " chips (" + Players[i].InvestedThisStreet + ")";
+            state += Players[i].ID + ": " + Players[i].Stack + " chips (" + Players[i].InvestedThisStreet + ")";
             if (HandActive && DealtInPlayers.Contains(i)) {
                 state += "\nHand: " + Players[i].Hand;
                 if (Players[i].Folded) { state += " (Folded)"; }

@@ -1,9 +1,11 @@
 using Godot;
+using Poker;
 using System;
+using System.Collections.Generic;
 
-public partial class PokerUI : Control {
-    [Signal]
-    public delegate void PokerActionEventHandler(Poker.Action action, uint amount);
+public partial class PhysicalLobby : Control {
+
+    NetworkClient Client { get => GetParent<NetworkClient>(); }
 
     HBoxContainer BoardContainer;
     int LastDrawn;
@@ -12,6 +14,7 @@ public partial class PokerUI : Control {
     Button BetButton;
     Button FoldButton;
     Button CheckButton;
+    TextEdit ChipsInput;
 
     public override void _Ready() {
         CallButton = GetNode<Button>("%CallButton");
@@ -22,8 +25,9 @@ public partial class PokerUI : Control {
         FoldButton.ButtonDown += Fold;
         CheckButton = GetNode<Button>("%CheckButton");
         CheckButton.ButtonDown += Check;
+        ChipsInput = GetNode<TextEdit>("%ChipsInput");
 
-        BoardContainer = GetNode<HBoxContainer>("BoardContainer");
+        BoardContainer = GetNode<HBoxContainer>("%BoardContainer");
         Godot.Collections.Array<Node> board = BoardContainer.GetChildren();
         for (int i = 0; i < board.Count; i++) {
             Board[i] = (PhysicalCard)board[i];
@@ -45,16 +49,24 @@ public partial class PokerUI : Control {
     }
 
     void Call() {
-        EmitSignal(SignalName.PokerAction, (byte)Poker.Action.CALL, 0);
+        Client.HandleAction(Poker.Action.CALL);
     }
     void Bet() {
-        uint amount = 50;
-        EmitSignal(SignalName.PokerAction, (byte)Poker.Action.BET, amount);
+        int amount = 50;
+        Client.HandleAction(Poker.Action.BET, amount);
     }
     void Check() {
-        EmitSignal(SignalName.PokerAction, (byte)Poker.Action.CHECK, 0);
+        Client.HandleAction(Poker.Action.CHECK);
     }
     void Fold() {
-        EmitSignal(SignalName.PokerAction, (byte)Poker.Action.FOLD, 0);
+        Client.HandleAction(Poker.Action.FOLD);
+    }
+
+    public void HandleLobbyStart(LobbyStartPacket pack) {
+        Hand[] hands = pack.Hands;
+        int[] ids = pack.PlayerIDs;
+        TableSettings settings = pack.Settings;
+        PokerGame game = new(settings, ids);
+        GD.Print("Joined Lobby");
     }
 }
