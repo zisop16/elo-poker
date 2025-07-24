@@ -9,7 +9,7 @@ public partial class ChipsInput : LineEdit {
         TextSubmitted += OnTextSubmit;
     }
     public void OnTextSubmit(string newText) {
-        Player localPlayer = Game.Players[Global.SeatNumber];
+        Player localPlayer = Game.Players[Global.LocalSeat];
         int stack = localPlayer.Stack;
         int potSize = Game.TotalPot;
         int currentInvested = localPlayer.InvestedThisStreet;
@@ -37,10 +37,10 @@ public partial class ChipsInput : LineEdit {
             }
             if (!foundSize) {
                 int length = newText.Length;
-                if (newText[length - 2] == '%') {
+                if (newText[length - 1] == '%') {
                     bool validPercent = double.TryParse(newText.AsSpan(0, length - 1), out double percent);
                     if (validPercent) {
-                        int additionalChips = (int)Math.Round(percent * potAfterCall);
+                        int additionalChips = (int)Math.Round(percent / 100 * potAfterCall);
                         ChipsValue = potAfterCall + additionalChips;
                         foundSize = true;
                     }

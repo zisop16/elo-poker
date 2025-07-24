@@ -6,10 +6,12 @@ using System.Collections.Generic;
 public partial class PhysicalLobby : Control {
     [Signal]
     public delegate void JoinedLobbyEventHandler();
+    [Signal]
+    public delegate void PokerActionEventHandler();
     public PokerGame Game;
     HBoxContainer BoardContainer;
     int LastDrawn;
-    public int SeatNumber { get; private set; }
+    public int LocalSeat { get; private set; }
     PhysicalCard[] Board = new PhysicalCard[5];
     Button CallButton;
     Button BetButton;
@@ -38,7 +40,7 @@ public partial class PhysicalLobby : Control {
 
     void ClearBoard() {
         foreach (PhysicalCard card in Board) {
-            card.Visible = false;
+            // card.Visible = false;
         }
         LastDrawn = 0;
     }
@@ -49,26 +51,38 @@ public partial class PhysicalLobby : Control {
         LastDrawn++;
     }
 
+    void Act(Poker.Action action, int amount = 0) {
+        bool success = Game.Act(action, amount);
+        if (!success) {
+            Assert.That(false, "Client attempted to perform an illegal action");
+            return;
+        }
+        Global.Client.HandleAction(action, amount);
+        EmitSignal(SignalName.PokerAction);
+    }
+
     void Call() {
-        Global.Client.HandleAction(Poker.Action.CALL);
+        Act(Poker.Action.CALL);
     }
     void Bet() {
         int amount = 50;
-        Global.Client.HandleAction(Poker.Action.BET, amount);
+        Act(Poker.Action.BET, amount);
     }
     void Check() {
-        Global.Client.HandleAction(Poker.Action.CHECK);
+        Act(Poker.Action.CHECK);
     }
     void Fold() {
-        Global.Client.HandleAction(Poker.Action.FOLD);
+        Act(Poker.Action.FOLD);
     }
 
     public void HandleLobbyStart(LobbyStartPacket pack) {
         Hand hand = pack.Hand;
         int[] ids = pack.PlayerIDs;
         TableSettings settings = pack.Settings;
-        SeatNumber = pack.SeatNumber;
+        LocalSeat = pack.SeatNumber;
         Game = new(settings, ids);
+        Tuple<int, Hand> forceHand = new(LocalSeat, hand);
+        Game.Deal(forceHand, pack.BigBlindPosition);
         GD.Print("Joined Lobby");
         EmitSignal(SignalName.JoinedLobby);
     }

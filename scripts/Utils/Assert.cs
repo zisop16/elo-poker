@@ -7,7 +7,7 @@ public static class Assert
         if (!condition)
         {
             if(message is not null)
-                GD.PushError("Assertion failed:", message);
+                GD.PushError("Assertion failed: ", message);
             else
                 GD.PushError("Assertion failed!");
             
