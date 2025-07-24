@@ -8,16 +8,18 @@ public partial class PhysicalLobby : Control {
     public delegate void JoinedLobbyEventHandler();
     [Signal]
     public delegate void PokerActionEventHandler();
+    [Signal]
+    public delegate void BoardChangeEventHandler();
     public PokerGame Game;
     HBoxContainer BoardContainer;
     int LastDrawn;
+    public int ActionIndex = 0;
     public int LocalSeat { get; private set; }
-    PhysicalCard[] Board = new PhysicalCard[5];
-    Button CallButton;
-    Button BetButton;
-    Button FoldButton;
-    Button CheckButton;
-    ChipsInput ChipsInput;
+    public Button CallButton { get; private set; }
+    public Button BetButton { get; private set; }
+    public Button FoldButton { get; private set; }
+    public Button CheckButton { get; private set; }
+    public ChipsInput ChipsInput { get; private set; }
 
     public override void _Ready() {
         CallButton = GetNode<Button>("%CallButton");
@@ -29,26 +31,29 @@ public partial class PhysicalLobby : Control {
         CheckButton = GetNode<Button>("%CheckButton");
         CheckButton.ButtonDown += Check;
         ChipsInput = GetNode<ChipsInput>("%ChipsInput");
-
-        BoardContainer = GetNode<HBoxContainer>("%BoardContainer");
-        Godot.Collections.Array<Node> board = BoardContainer.GetChildren();
-        for (int i = 0; i < board.Count; i++) {
-            Board[i] = (PhysicalCard)board[i];
-        }
-        ClearBoard();
     }
 
-    void ClearBoard() {
-        foreach (PhysicalCard card in Board) {
-            // card.Visible = false;
+    public void ReceiveAction(Poker.Action action, int amount, int actionIndex, PokerCard[] newlyDealtCards) {
+        bool newCards = newlyDealtCards != null;
+        if (newCards) {
+            Game.ForceBoardCards(newlyDealtCards);
         }
-        LastDrawn = 0;
-    }
 
-    public void DrawToBoard(PokerCard card) {
-        Board[LastDrawn].Card = card;
-        Board[LastDrawn].Visible = true;
-        LastDrawn++;
+        if (actionIndex > ActionIndex) {
+            bool success = Game.Act(action, amount);
+            if (!success) {
+                Assert.That(false, "Client attempted to perform an illegal action");
+                return;
+            }
+            ActionIndex++;
+            if (newCards) {
+                EmitSignal(SignalName.BoardChange);
+            }
+            EmitSignal(SignalName.PokerAction);
+        } else {
+            // Server has sent back the client's action along with drawn board cards
+            EmitSignal(SignalName.BoardChange);
+        }
     }
 
     void Act(Poker.Action action, int amount = 0) {
@@ -57,6 +62,7 @@ public partial class PhysicalLobby : Control {
             Assert.That(false, "Client attempted to perform an illegal action");
             return;
         }
+        ActionIndex++;
         Global.Client.HandleAction(action, amount);
         EmitSignal(SignalName.PokerAction);
     }
@@ -65,7 +71,7 @@ public partial class PhysicalLobby : Control {
         Act(Poker.Action.CALL);
     }
     void Bet() {
-        int amount = 50;
+        int amount = ChipsInput.ChipsValue;
         Act(Poker.Action.BET, amount);
     }
     void Check() {

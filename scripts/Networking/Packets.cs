@@ -2,14 +2,48 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
+using Godot;
 using Poker;
 
 public enum PacketType : byte { ACTION, JOIN, LOBBY_START };
 
-public readonly struct ActionPacket(Poker.Action action, int amount = 0) {
+public struct ActionPacket {
     public readonly PacketType Type = PacketType.ACTION;
-    public readonly Poker.Action Action = action;
-    public readonly int Amount = amount;
+    public readonly Poker.Action Action;
+    public readonly int Amount;
+    public readonly int ActionIndex;
+    public int NumDealtCards { get; private set; }
+    [MarshalAs(UnmanagedType.ByValArray, SizeConst = PokerGame.BOARD_SIZE)]
+    PokerCard[] _dealtCards;
+    public PokerCard[] DealtCards {
+        get {
+            if (NumDealtCards == 0) return null;
+            PokerCard[] compressed = new PokerCard[NumDealtCards];
+            for (int i = 0; i < NumDealtCards; i++) {
+                compressed[i] = _dealtCards[i];
+            }
+            return compressed;
+        }
+        set {
+            PokerCard[] expanded = new PokerCard[PokerGame.BOARD_SIZE];
+            if (value == null) {
+                _dealtCards = expanded;
+                NumDealtCards = 0;
+                return;
+            }
+            for (int i = 0; i < value.Length; i++) {
+                expanded[i] = value[i];
+            }
+            _dealtCards = expanded;
+            NumDealtCards = value.Length;
+        }
+    }
+    public ActionPacket(Poker.Action action, int amount, int actionIndex, PokerCard[] dealtBoardCards = null) {
+        Action = action;
+        Amount = amount;
+        ActionIndex = actionIndex;
+        DealtCards = dealtBoardCards;
+    }
 }
 
 public readonly struct JoinPacket() {

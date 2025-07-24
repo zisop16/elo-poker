@@ -61,12 +61,14 @@ public partial class NetworkServer : Node {
         }
     }
 
-    enum ActionError { NotInGame, NotCurrentTurn, InvalidAction, Success };
+    enum ActionError { NotInGame, NotCurrentTurn, InvalidAction, Outdated, Success };
     ActionError HandleAction(ActionPacket pack, int peerID) {
         if (!PlayerIDLobby.TryGetValue(peerID, out NetworkLobby lobby)) return ActionError.NotInGame;
+        if (pack.ActionIndex != (lobby.ActionIndex + 1)) return ActionError.Outdated;
         if (!lobby.PlayerIsActing(peerID)) return ActionError.NotCurrentTurn;
         Poker.Action action = pack.Action;
         bool success = false;
+        int boardSizeBefore = lobby.Game.NumCardsOnBoard;
         switch (action) {
             case Poker.Action.CHECK:
                 success = lobby.Check();
@@ -83,7 +85,22 @@ public partial class NetworkServer : Node {
                 break;
         }
         if (success) {
-            GD.Print(action, '\n', lobby.Game);
+            int boardSizeDiff = lobby.Game.NumCardsOnBoard - boardSizeBefore;
+            bool newCards = boardSizeDiff != 0;
+            if (newCards) {
+                PokerCard[] newlyDealtCards = new PokerCard[boardSizeDiff];
+                int ind = 0;
+                for (int i = boardSizeBefore; i < lobby.Game.NumCardsOnBoard; i++) {
+                    PokerCard curr = lobby.Game.Board[i];
+                    newlyDealtCards[ind++] = curr;
+                }
+                pack.DealtCards = newlyDealtCards;
+            }
+            foreach (int p in lobby.ConnectedPlayers) {
+                if (!newCards && p == peerID) continue;
+                Peer.SetTargetPeer(p);
+                Peer.PutPacket(Packet.ToBytes(pack));
+            }
             return ActionError.Success;
         }
         return ActionError.InvalidAction;

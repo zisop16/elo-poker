@@ -10,11 +10,12 @@ public class NetworkLobby {
     public int ButtonPosition { get => Game.ButtonPosition.Val; }
     public int SmallBlindPosition { get => Game.SmallBlindPosition.Val; }
     public int ActingPosition { get => Game.ActingPosition.Val; }
-    
 
-    int[] ConnectedPlayers;
+
+    public readonly int[] ConnectedPlayers;
     Street Street;
     int NumCardsOnBoard = 0;
+    public int ActionIndex = 0;
 
     public NetworkLobby(TableSettings settings, int[] playerIDs) {
         Settings = settings;
@@ -35,21 +36,25 @@ public class NetworkLobby {
         }
     }
 
-    public bool Bet(int amount) {
-        bool success = Game.Bet(amount);
+    bool Act(Action action, int amount = 0) {
+        bool success = Game.Act(action, amount);
+        if (success) {
+            ActionIndex++;
+        }
         return success;
+    }
+
+    public bool Bet(int amount) {
+        return Act(Action.BET, amount);
     }
     public bool Fold() {
-        bool success = Game.Fold();
-        return success;
+        return Act(Action.FOLD);
     }
     public bool Call() {
-        bool success = Game.Call();
-        return success;
+        return Act(Action.CALL);
     }
     public bool Check() {
-        bool success = Game.Check();
-        return success;
+        return Act(Action.CHECK);
     }
     void HandleStreetChange() {
         if (Game.Street == Street) return;

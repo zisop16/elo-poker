@@ -50,9 +50,11 @@ namespace Poker {
 }
 
 public partial class PokerGame {
+    public const int BOARD_SIZE = 5;
+
     public Deck Deck;
-    TableSettings Settings;
-    PokerCard[] Board;
+    public TableSettings Settings { get; private set; }
+    public readonly PokerCard[] Board;
     public Player[] Players{ get; private set; }
     List<int> DealtInPlayers;
     List<int> DealtInPlayersLastHand;
@@ -113,7 +115,7 @@ public partial class PokerGame {
     public PokerGame(TableSettings settings, int[] playerIDs) {
         Settings = settings;
         Deck = new Deck();
-        Board = new PokerCard[5];
+        Board = new PokerCard[BOARD_SIZE];
         Players = new Player[Settings.NumPlayers];
         for (int i = 0; i < Settings.NumPlayers; i++) {
             Players[i].Stack = Settings.StartStack;
@@ -147,16 +149,22 @@ public partial class PokerGame {
         return from;
     }
 
-    PokerCard? NextForce = null;
-    public void ForceNextBoardCard(PokerCard force) {
-        NextForce = force;
+    int NumCardsForced;
+    Queue<PokerCard> ForcedBoardCards = [];
+    public void ForceBoardCards(PokerCard[] force) {
+        foreach (PokerCard card in force) {
+            ForcedBoardCards.Enqueue(card);
+        }
+        while (NumCardsForced < NumCardsOnBoard) {
+            Board[NumCardsForced++] = ForcedBoardCards.Dequeue();
+        }
     }
     void DrawBoardCard() {
-        if (NextForce == null) {
+        if (ForcedBoardCards.Count == 0) {
             Board[NumCardsOnBoard] = Deck.Draw();
         } else {
-            Board[NumCardsOnBoard] = NextForce.Value;
-            NextForce = null;
+            Board[NumCardsOnBoard] = ForcedBoardCards.Dequeue();
+            NumCardsForced++;
         }
         NumCardsOnBoard += 1;
     }
@@ -170,6 +178,7 @@ public partial class PokerGame {
         RemainingPlayers.Clear();
         HandActive = true;
         NumCardsOnBoard = 0;
+        NumCardsForced = 0;
         for (int i = 0; i < Settings.NumPlayers; i++) {
             if ((!Players[i].SittingIn) || Players[i].Stack == 0) {
                 continue;
@@ -288,7 +297,7 @@ public partial class PokerGame {
 
     /// <param name="pos"></param>
     /// <returns>Whether the player is allin</returns>
-    bool IsAllIn(int pos) {
+    public bool IsAllIn(int pos) {
         if (!DealtInPlayers.Contains(pos)) {
             return false;
         }
@@ -485,7 +494,7 @@ public partial class PokerGame {
     }
 
     void HandleAllinPot() {
-        for (int i = NumCardsOnBoard; i < 5; i++) {
+        for (int i = NumCardsOnBoard; i < BOARD_SIZE; i++) {
             DrawBoardCard();
         }
         int[] winnings = DetermineShowdownWinnings();

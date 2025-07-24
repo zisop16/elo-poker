@@ -3,12 +3,19 @@ using Poker;
 using System;
 
 public partial class ChipsInput : LineEdit {
-    int ChipsValue = 0;
+    int _chipsValue = 0;
+    public int ChipsValue {
+        get => _chipsValue;
+        set {
+            _chipsValue = value;
+            Text = "" + _chipsValue;
+        }
+    }
     PokerGame Game { get => Global.Client.Lobby.Game; }
     public override void _Ready() {
-        TextSubmitted += OnTextSubmit;
+        TextSubmitted += HandleTextSizing;
     }
-    public void OnTextSubmit(string newText) {
+    public void HandleTextSizing(string newText) {
         Player localPlayer = Game.Players[Global.LocalSeat];
         int stack = localPlayer.Stack;
         int potSize = Game.TotalPot;
@@ -35,8 +42,8 @@ public partial class ChipsInput : LineEdit {
                     foundSize = true;
                     break;
             }
+            int length = newText.Length;
             if (!foundSize) {
-                int length = newText.Length;
                 if (newText[length - 1] == '%') {
                     bool validPercent = double.TryParse(newText.AsSpan(0, length - 1), out double percent);
                     if (validPercent) {
@@ -46,11 +53,20 @@ public partial class ChipsInput : LineEdit {
                     }
                 }
             }
+            if (!foundSize) {
+                if (newText.EndsWith("bb")) {
+                    bool validBBAmount = double.TryParse(newText.AsSpan(0, length - 2), out double bbAmount);
+                    if (validBBAmount) {
+                        int totalAmount = (int)Math.Round(Global.LocalGame.Settings.BigBlind * bbAmount);
+                        ChipsValue = totalAmount;
+                        foundSize = true;
+                    }
+                }
+            }
         }
         if (foundSize) {
             if (ChipsValue > stack) ChipsValue = stack;
             if (ChipsValue < minRaise) ChipsValue = minRaise;
         }
-        Text = "" + ChipsValue;
     }
 }

@@ -24,7 +24,7 @@ public partial class NetworkClient : Control {
     }
 
     public void HandleAction(Poker.Action action, int amount = 0) {
-        ActionPacket pack = new(action, amount);
+        ActionPacket pack = new(action, amount, Lobby.ActionIndex);
         byte[] bytes = Packet.ToBytes(pack);
         Peer.PutPacket(bytes);
         GD.Print("Sent ", action);
@@ -41,13 +41,24 @@ public partial class NetworkClient : Control {
         SetActive(Lobby, true);
     }
 
+    void HandleActionPacket(ActionPacket pack) {
+        Poker.Action action = pack.Action;
+        int amount = pack.Amount;
+        PokerCard[] newlyDealtCards = pack.DealtCards;
+        Lobby.ReceiveAction(action, amount, pack.ActionIndex, newlyDealtCards);
+    }
+
     void HandleNextPacket() {
         byte[] msg = Peer.GetPacket();
         PacketType type = (PacketType)msg[0];
         switch (type) {
             case PacketType.LOBBY_START:
-                LobbyStartPacket pack = Packet.FromBytes<LobbyStartPacket>(msg);
-                HandleLobbyStartPacket(pack);
+                LobbyStartPacket lobbyPack = Packet.FromBytes<LobbyStartPacket>(msg);
+                HandleLobbyStartPacket(lobbyPack);
+                break;
+            case PacketType.ACTION:
+                ActionPacket actionPack = Packet.FromBytes<ActionPacket>(msg);
+                HandleActionPacket(actionPack);
                 break;
         }
     }

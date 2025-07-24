@@ -1,10 +1,14 @@
-[gd_scene load_steps=7 format=3 uid="uid://08gl2eklo832"]
+[gd_scene load_steps=11 format=3 uid="uid://08gl2eklo832"]
 
 [ext_resource type="Script" uid="uid://cgkxjyc2fhr7h" path="res://scripts/UI/PhysicalLobby.cs" id="1_aoi28"]
 [ext_resource type="PackedScene" uid="uid://bq8p1lot4rbn3" path="res://scenes/UI/physical_card.tscn" id="2_bvfni"]
 [ext_resource type="Script" uid="uid://bi75kxh0rsj7y" path="res://scripts/UI/PotAmount.cs" id="2_r4h4q"]
+[ext_resource type="Script" uid="uid://jfs5p06dij7l" path="res://scripts/UI/BoardContainer.cs" id="3_inglu"]
 [ext_resource type="Script" uid="uid://deciaj3jj7kec" path="res://scripts/UI/ChipsInput.cs" id="3_kk8em"]
+[ext_resource type="Script" uid="uid://dg3sdlr67f50p" path="res://scripts/UI/VActionContainer.cs" id="4_rvo1l"]
+[ext_resource type="Script" uid="uid://cuoa2icw0coc7" path="res://scripts/UI/SizingButton.cs" id="5_a3fkx"]
 [ext_resource type="Script" uid="uid://bliacyfcvdvwv" path="res://scripts/UI/PhysicalHand.cs" id="5_kuxcb"]
+[ext_resource type="Script" uid="uid://chcdl44o1miv1" path="res://scripts/UI/HActionContainer.cs" id="6_rvo1l"]
 
 [sub_resource type="StyleBoxLine" id="StyleBoxLine_xj5tl"]
 color = Color(0.2, 0.143333, 0, 1)
@@ -70,6 +74,7 @@ layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 15
 alignment = 1
+script = ExtResource("3_inglu")
 metadata/_edit_use_anchors_ = true
 
 [node name="PhysicalCard" parent="VBoardContainer/BoardContainer" instance=ExtResource("2_bvfni")]
@@ -89,15 +94,14 @@ layout_mode = 2
 
 [node name="VActionContainer" type="VBoxContainer" parent="."]
 layout_mode = 1
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -263.0
-offset_top = -80.0
+anchors_preset = -1
+anchor_left = 0.95
+anchor_top = 0.95
+anchor_right = 0.95
+anchor_bottom = 0.95
 grow_horizontal = 0
 grow_vertical = 0
+script = ExtResource("4_rvo1l")
 
 [node name="HSizingContainer" type="HBoxContainer" parent="VActionContainer"]
 layout_mode = 2
@@ -112,14 +116,17 @@ theme_override_font_sizes/font_size = 20
 placeholder_text = "Bet Amount"
 script = ExtResource("3_kk8em")
 
-[node name="Space" type="Control" parent="VActionContainer/HSizingContainer"]
+[node name="SizingButton" type="Button" parent="VActionContainer/HSizingContainer"]
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_stretch_ratio = 0.4
+text = "18.2BB"
+script = ExtResource("5_a3fkx")
+Amount = 18.2
+metadata/_custom_type_script = "uid://cuoa2icw0coc7"
 
 [node name="HActionContainer" type="HBoxContainer" parent="VActionContainer"]
 layout_mode = 2
 theme_override_constants/separation = 25
+script = ExtResource("6_rvo1l")
 metadata/_edit_use_anchors_ = true
 
 [node name="CallButton" type="Button" parent="VActionContainer/HActionContainer"]
