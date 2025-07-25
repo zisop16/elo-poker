@@ -4,12 +4,12 @@ using System;
 [Tool]
 [GlobalClass]
 public partial class SizingButton : Button {
-    bool _falseBBTruePercent;
+    SizeType _type;
     [Export]
-    bool FalseBBTruePercent {
-        get => _falseBBTruePercent;
+    public SizeType Type {
+        get => _type;
         set {
-            _falseBBTruePercent = value;
+            _type = value;
             UpdateText();
         }
     }
@@ -24,7 +24,7 @@ public partial class SizingButton : Button {
     }
     void UpdateText() {
         string formattedAmount = string.Format("{0:0.#}", _amount);
-        if (FalseBBTruePercent) {
+        if (Type == SizeType.PERCENT) {
             Text = formattedAmount + "%";
         } else {
             Text = formattedAmount + "BB";

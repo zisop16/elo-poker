@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 public enum TablePreset { NONE, HEADS_UP };
 
-[GlobalClass, Icon("res://images/icons/table_icon.png")]
+[GlobalClass, Icon("res://images/icons/poker_cards.png")]
 public partial class TableSettings : Resource {
     const string SETTINGS_LOCATION = "res://resources/table_settings/";
     static Dictionary<TablePreset, string> TableSettingNames = new(){
