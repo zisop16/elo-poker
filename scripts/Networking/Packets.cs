@@ -5,10 +5,17 @@ using System.Runtime.InteropServices;
 using Godot;
 using Poker;
 
-public enum PacketType : byte { ACTION, JOIN, LOBBY_START };
+public enum PacketType : byte { CLIENT_ACTION, SERVER_ACTION, JOIN, LOBBY_START };
 
-public struct ActionPacket {
-    public readonly PacketType Type = PacketType.ACTION;
+public readonly struct ClientActionPacket(Poker.Action action, int amount, int actionIndex) {
+    public readonly PacketType Type = PacketType.CLIENT_ACTION;
+    public readonly Poker.Action Action = action;
+    public readonly int Amount = amount;
+    public readonly int ActionIndex = actionIndex;
+}
+
+public struct ServerActionPacket {
+    public readonly PacketType Type = PacketType.SERVER_ACTION;
     public readonly Poker.Action Action;
     public readonly int Amount;
     public readonly int ActionIndex;
@@ -38,7 +45,7 @@ public struct ActionPacket {
             NumDealtCards = value.Length;
         }
     }
-    public ActionPacket(Poker.Action action, int amount, int actionIndex, PokerCard[] dealtBoardCards = null) {
+    public ServerActionPacket(Poker.Action action, int amount, int actionIndex, PokerCard[] dealtBoardCards = null) {
         Action = action;
         Amount = amount;
         ActionIndex = actionIndex;
@@ -46,7 +53,7 @@ public struct ActionPacket {
     }
 }
 
-public readonly struct JoinPacket() {
+public readonly struct JoinQueuePacket() {
     public readonly PacketType Type = PacketType.JOIN;
 }
 

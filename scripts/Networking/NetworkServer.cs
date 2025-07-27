@@ -48,13 +48,12 @@ public partial class NetworkServer : Node {
             byte[] rawBytes = Peer.GetPacket();
             PacketType type = (PacketType)rawBytes[0];
             switch (type) {
-                case PacketType.ACTION:
-                    ActionPacket actPack = Packet.FromBytes<ActionPacket>(rawBytes);
+                case PacketType.CLIENT_ACTION:
+                    ClientActionPacket actPack = Packet.FromBytes<ClientActionPacket>(rawBytes);
                     ActionError result = HandleAction(actPack, source);
-                    GD.Print("Action result: ", result);
                     break;
                 case PacketType.JOIN:
-                    JoinPacket joinPack = Packet.FromBytes<JoinPacket>(rawBytes);
+                    JoinQueuePacket joinPack = Packet.FromBytes<JoinQueuePacket>(rawBytes);
                     HandleJoin(joinPack, source);
                     break;
             }
@@ -62,44 +61,22 @@ public partial class NetworkServer : Node {
     }
 
     enum ActionError { NotInGame, NotCurrentTurn, InvalidAction, Outdated, Success };
-    ActionError HandleAction(ActionPacket pack, int peerID) {
+    ActionError HandleAction(ClientActionPacket pack, int peerID) {
         if (!PlayerIDLobby.TryGetValue(peerID, out NetworkLobby lobby)) return ActionError.NotInGame;
-        if (pack.ActionIndex != (lobby.ActionIndex + 1)) return ActionError.Outdated;
+        if (pack.ActionIndex != lobby.NextActionIndex) return ActionError.Outdated;
         if (!lobby.PlayerIsActing(peerID)) return ActionError.NotCurrentTurn;
         Poker.Action action = pack.Action;
-        bool success = false;
-        int boardSizeBefore = lobby.Game.NumCardsOnBoard;
-        switch (action) {
-            case Poker.Action.CHECK:
-                success = lobby.Check();
-                break;
-            case Poker.Action.BET:
-                int amount = pack.Amount;
-                success = lobby.Bet(amount);
-                break;
-            case Poker.Action.CALL:
-                success = lobby.Call();
-                break;
-            case Poker.Action.FOLD:
-                success = lobby.Fold();
-                break;
-        }
-        if (success) {
-            int boardSizeDiff = lobby.Game.NumCardsOnBoard - boardSizeBefore;
-            bool newCards = boardSizeDiff != 0;
-            if (newCards) {
-                PokerCard[] newlyDealtCards = new PokerCard[boardSizeDiff];
-                int ind = 0;
-                for (int i = boardSizeBefore; i < lobby.Game.NumCardsOnBoard; i++) {
-                    PokerCard curr = lobby.Game.Board[i];
-                    newlyDealtCards[ind++] = curr;
-                }
-                pack.DealtCards = newlyDealtCards;
+        int amount = pack.Amount;
+        ActionResult result = lobby.Act(action, amount);
+        if (result.Success) {
+            ServerActionPacket response = new(pack.Action, pack.Amount, pack.ActionIndex);
+            if (result.StreetChange) {
+                response.DealtCards = result.NewCards;
             }
             foreach (int p in lobby.ConnectedPlayers) {
-                if (!newCards && p == peerID) continue;
+                if (!result.StreetChange && p == peerID) continue;
                 Peer.SetTargetPeer(p);
-                Peer.PutPacket(Packet.ToBytes(pack));
+                Peer.PutPacket(Packet.ToBytes(response));
             }
             return ActionError.Success;
         }
@@ -117,7 +94,7 @@ public partial class NetworkServer : Node {
         Success, LobbyFull, AlreadyJoined
     }
 
-    JoinError HandleJoin(JoinPacket pack, int peerID) {
+    JoinError HandleJoin(JoinQueuePacket pack, int peerID) {
         if (PlayerQueue.Exists(x => x.PeerID == peerID)) return JoinError.AlreadyJoined;
         PlayerQueue.Add(new QueuedPlayer(peerID));
         return JoinError.Success;

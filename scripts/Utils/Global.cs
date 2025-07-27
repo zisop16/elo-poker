@@ -12,4 +12,5 @@ public static class Global {
     public static Hand LocalHand { get => LocalGame.Players[LocalSeat].Hand; }
     public static bool ActionOnSelf { get => LocalGame.ActingPosition == LocalSeat; }
     public static bool LocallyAllin { get => LocalGame.IsAllIn(LocalSeat); }
+    public static TableLayout LocalLayout { get => GD.Load<TableLayout>(TableLayout.LAYOUT_PATH); }
 }

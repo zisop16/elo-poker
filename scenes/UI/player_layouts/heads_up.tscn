@@ -1,0 +1,137 @@
+[gd_scene load_steps=6 format=3 uid="uid://dp5j7rxb1un3v"]
+
+[ext_resource type="Script" uid="uid://bliacyfcvdvwv" path="res://scripts/UI/PhysicalHand.cs" id="1_3d8dr"]
+[ext_resource type="Texture2D" uid="uid://3ggc4ss7rlpn" path="res://images/deck/Th.png" id="2_83ite"]
+[ext_resource type="Script" uid="uid://c183jhon7hef1" path="res://scripts/UI/PhysicalCard.cs" id="3_mjm1e"]
+[ext_resource type="Texture2D" uid="uid://dc1x088trbt2i" path="res://images/deck/As.png" id="4_581ry"]
+[ext_resource type="Texture2D" uid="uid://cp4ryyou71lr1" path="res://images/card_backs/back-lightblue.png" id="5_84oa4"]
+
+[node name="HeadsUp" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="PhysicalPlayer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.466146
+anchor_top = 0.720679
+anchor_right = 0.552083
+anchor_bottom = 0.91563
+grow_horizontal = 2
+grow_vertical = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="IDLabel" type="Label" parent="PhysicalPlayer"]
+layout_mode = 2
+text = "Player Name"
+
+[node name="HSeparator" type="HSeparator" parent="PhysicalPlayer"]
+layout_mode = 2
+
+[node name="PhysicalHand" type="Control" parent="PhysicalPlayer"]
+layout_mode = 2
+size_flags_vertical = 3
+script = ExtResource("1_3d8dr")
+IsLocalHand = true
+
+[node name="PhysicalCard1" type="TextureRect" parent="PhysicalPlayer/PhysicalHand"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 44.0
+offset_top = -8.0
+offset_right = 44.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+rotation = 0.226893
+texture = ExtResource("2_83ite")
+expand_mode = 3
+stretch_mode = 5
+script = ExtResource("3_mjm1e")
+Color = 0
+Type = 8
+metadata/_custom_type_script = "uid://c183jhon7hef1"
+
+[node name="PhysicalCard2" type="TextureRect" parent="PhysicalPlayer/PhysicalHand"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -41.0
+offset_top = 20.0
+offset_right = -41.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+rotation = -0.253073
+texture = ExtResource("4_581ry")
+expand_mode = 3
+stretch_mode = 5
+script = ExtResource("3_mjm1e")
+metadata/_custom_type_script = "uid://c183jhon7hef1"
+
+[node name="PhysicalPlayer2" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.461806
+anchor_top = 0.0771605
+anchor_right = 0.547743
+anchor_bottom = 0.272111
+grow_horizontal = 2
+grow_vertical = 2
+metadata/_edit_use_anchors_ = true
+
+[node name="IDLabel" type="Label" parent="PhysicalPlayer2"]
+layout_mode = 2
+text = "Player Name"
+
+[node name="HSeparator" type="HSeparator" parent="PhysicalPlayer2"]
+layout_mode = 2
+
+[node name="PhysicalHand" type="Control" parent="PhysicalPlayer2"]
+layout_mode = 2
+size_flags_vertical = 3
+script = ExtResource("1_3d8dr")
+
+[node name="PhysicalCard1" type="TextureRect" parent="PhysicalPlayer2/PhysicalHand"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 44.0
+offset_top = -8.0
+offset_right = 44.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+rotation = 0.226893
+texture = ExtResource("5_84oa4")
+expand_mode = 3
+stretch_mode = 5
+script = ExtResource("3_mjm1e")
+metadata/_custom_type_script = "uid://c183jhon7hef1"
+
+[node name="PhysicalCard2" type="TextureRect" parent="PhysicalPlayer2/PhysicalHand"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -41.0
+offset_top = 20.0
+offset_right = -41.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+rotation = -0.253073
+texture = ExtResource("5_84oa4")
+expand_mode = 3
+stretch_mode = 5
+script = ExtResource("3_mjm1e")
+metadata/_custom_type_script = "uid://c183jhon7hef1"

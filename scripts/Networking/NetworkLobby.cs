@@ -2,6 +2,12 @@ using System.Collections.Generic;
 using Godot;
 using Poker;
 
+public class ActionResult {
+    public bool Success = false;
+    public bool StreetChange { get => NewCards != null; }
+    public PokerCard[] NewCards = null;
+}
+
 public class NetworkLobby {
     readonly TableSettings Settings;
     public readonly PokerGame Game;
@@ -15,7 +21,8 @@ public class NetworkLobby {
     public readonly int[] ConnectedPlayers;
     Street Street;
     int NumCardsOnBoard = 0;
-    public int ActionIndex = 0;
+    int ActionIndex = 0;
+    public int NextActionIndex { get => ActionIndex + 1; }
 
     public NetworkLobby(TableSettings settings, int[] playerIDs) {
         Settings = settings;
@@ -28,43 +35,39 @@ public class NetworkLobby {
     }
     public void Deal() {
         Game.Deal();
-        if (Game.Street == Street.SHOWDOWN) {
-            // do something
-        } else {
-            Street = Street.PREFLOP;
+        Street = Street.PREFLOP;
+        ActionResult result = new();
+        HandleStreetChange(result);
+        if (result.StreetChange) {
             NumCardsOnBoard = 0;
         }
     }
 
-    bool Act(Action action, int amount = 0) {
-        bool success = Game.Act(action, amount);
-        if (success) {
+    public ActionResult Act(Action action, int amount) {
+        ActionResult result = new();
+        result.Success = Game.Act(action, amount);
+        if (result.Success) {
             ActionIndex++;
+            HandleStreetChange(result);
         }
-        return success;
+        return result;
     }
-
-    public bool Bet(int amount) {
-        return Act(Action.BET, amount);
-    }
-    public bool Fold() {
-        return Act(Action.FOLD);
-    }
-    public bool Call() {
-        return Act(Action.CALL);
-    }
-    public bool Check() {
-        return Act(Action.CHECK);
-    }
-    void HandleStreetChange() {
+    void HandleStreetChange(ActionResult result) {
         if (Game.Street == Street) return;
         int cardsDrawn = Game.NumCardsOnBoard - NumCardsOnBoard;
         Street = Game.Street;
+        int ind = 0;
+        result.NewCards = new PokerCard[cardsDrawn];
+        for (int i = NumCardsOnBoard; i < Game.NumCardsOnBoard; i++) {
+            PokerCard curr = Game.Board[i];
+            result.NewCards[ind++] = curr;
+        }
         if (Street == Street.SHOWDOWN) {
             HandleShowdown();
         } else if (Street == Street.ALL_FOLDED) {
             HandleAllFolded();
         }
+        NumCardsOnBoard = Game.NumCardsOnBoard;
     }
     void HandleShowdown() {
 

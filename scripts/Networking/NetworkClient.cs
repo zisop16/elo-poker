@@ -24,14 +24,14 @@ public partial class NetworkClient : Control {
     }
 
     public void HandleAction(Poker.Action action, int amount = 0) {
-        ActionPacket pack = new(action, amount, Lobby.ActionIndex);
+        ClientActionPacket pack = new(action, amount, Lobby.ActionIndex);
         byte[] bytes = Packet.ToBytes(pack);
         Peer.PutPacket(bytes);
         GD.Print("Sent ", action);
     }
 
     public void JoinQueue() {
-        JoinPacket pack = new();
+        JoinQueuePacket pack = new();
         Peer.PutPacket(Packet.ToBytes(pack));
     }
 
@@ -41,7 +41,7 @@ public partial class NetworkClient : Control {
         SetActive(Lobby, true);
     }
 
-    void HandleActionPacket(ActionPacket pack) {
+    void HandleActionPacket(ServerActionPacket pack) {
         Poker.Action action = pack.Action;
         int amount = pack.Amount;
         PokerCard[] newlyDealtCards = pack.DealtCards;
@@ -56,8 +56,8 @@ public partial class NetworkClient : Control {
                 LobbyStartPacket lobbyPack = Packet.FromBytes<LobbyStartPacket>(msg);
                 HandleLobbyStartPacket(lobbyPack);
                 break;
-            case PacketType.ACTION:
-                ActionPacket actionPack = Packet.FromBytes<ActionPacket>(msg);
+            case PacketType.SERVER_ACTION:
+                ServerActionPacket actionPack = Packet.FromBytes<ServerActionPacket>(msg);
                 HandleActionPacket(actionPack);
                 break;
         }
@@ -66,7 +66,7 @@ public partial class NetworkClient : Control {
     static void SetActive(Control parent, bool setting) {
         parent.Visible = setting;
         foreach (Control child in parent.GetChildren()) {
-            SetActiveRecursive(child, setting);
+            // SetActiveRecursive(child, setting);
         }
     }
 

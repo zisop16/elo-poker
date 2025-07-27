@@ -2,6 +2,7 @@ using Godot;
 using System;
 
 [Tool]
+[GlobalClass]
 public partial class HSizingContainer : HBoxContainer {
     bool _preflop = false;
     [Export]
@@ -61,13 +62,17 @@ public partial class HSizingContainer : HBoxContainer {
             sizes = Settings.PostflopSizes;
         }
         for (int i = 0; i < numButtons; i++) {
-            BetSize currSize = (BetSize)sizes[i];
+            BetSize currSize = sizes[i];
             if (currSize == null) return;
             SizingButton currButton = new() {
                 Type = currSize.Type,
                 Amount = currSize.Amount
             };
             AddChild(currButton);
+            if (Engine.IsEditorHint()) {
+                if (GetTree() == null || GetTree().EditedSceneRoot == null) return;
+                currButton.Owner = GetTree().EditedSceneRoot;
+            }
         }
     }
 }

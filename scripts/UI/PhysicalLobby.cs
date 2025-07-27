@@ -81,6 +81,20 @@ public partial class PhysicalLobby : Control {
         Act(Poker.Action.FOLD);
     }
 
+    const string PLAYER_LAYOUT_PATH = "res://scenes/UI/player_layouts/";
+    void UpdatePlayerLayout() {
+        int size = Game.Settings.NumPlayers;
+        string layoutName = "";
+        switch (size) {
+            case 2:
+                layoutName = "heads_up";
+                break;
+        }
+        string layoutPath = PLAYER_LAYOUT_PATH + layoutName + ".tscn";
+        Control layout = (Control)GD.Load<PackedScene>(layoutPath).Instantiate();
+        AddChild(layout);
+    }
+
     public void HandleLobbyStart(LobbyStartPacket pack) {
         Hand hand = pack.Hand;
         int[] ids = pack.PlayerIDs;
@@ -89,6 +103,7 @@ public partial class PhysicalLobby : Control {
         Game = new(settings, ids);
         Tuple<int, Hand> forceHand = new(LocalSeat, hand);
         Game.Deal(forceHand, pack.BigBlindPosition);
+        UpdatePlayerLayout();
         GD.Print("Joined Lobby");
         EmitSignal(SignalName.JoinedLobby);
     }

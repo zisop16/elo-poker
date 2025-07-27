@@ -1,13 +1,14 @@
-[gd_scene load_steps=12 format=3 uid="uid://08gl2eklo832"]
+[gd_scene load_steps=13 format=3 uid="uid://08gl2eklo832"]
 
 [ext_resource type="Script" uid="uid://cgkxjyc2fhr7h" path="res://scripts/UI/PhysicalLobby.cs" id="1_aoi28"]
-[ext_resource type="PackedScene" uid="uid://bq8p1lot4rbn3" path="res://scenes/UI/physical_card.tscn" id="2_bvfni"]
+[ext_resource type="Theme" uid="uid://ddegklhtxecd3" path="res://resources/theme/physical_lobby.tres" id="1_sxpaa"]
 [ext_resource type="Script" uid="uid://bi75kxh0rsj7y" path="res://scripts/UI/PotAmount.cs" id="2_r4h4q"]
 [ext_resource type="Script" uid="uid://jfs5p06dij7l" path="res://scripts/UI/BoardContainer.cs" id="3_inglu"]
 [ext_resource type="Script" uid="uid://deciaj3jj7kec" path="res://scripts/UI/ChipsInput.cs" id="3_kk8em"]
 [ext_resource type="Script" uid="uid://dg3sdlr67f50p" path="res://scripts/UI/VActionContainer.cs" id="4_rvo1l"]
-[ext_resource type="Script" uid="uid://bliacyfcvdvwv" path="res://scripts/UI/PhysicalHand.cs" id="5_kuxcb"]
+[ext_resource type="Texture2D" uid="uid://dc1x088trbt2i" path="res://images/deck/As.png" id="6_h0st5"]
 [ext_resource type="Script" uid="uid://chcdl44o1miv1" path="res://scripts/UI/HActionContainer.cs" id="6_rvo1l"]
+[ext_resource type="Script" uid="uid://c183jhon7hef1" path="res://scripts/UI/PhysicalCard.cs" id="6_w1d6y"]
 [ext_resource type="Script" uid="uid://bjnis3rfupvw" path="res://scripts/UI/HSizingContainer.cs" id="7_dvjy7"]
 [ext_resource type="Resource" uid="uid://ctywq2jmphiru" path="res://resources/player_settings/default_sizes.tres" id="8_sxpaa"]
 
@@ -23,6 +24,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+theme = ExtResource("1_sxpaa")
 script = ExtResource("1_aoi28")
 
 [node name="VBoardContainer" type="VBoxContainer" parent="."]
@@ -78,28 +80,48 @@ alignment = 1
 script = ExtResource("3_inglu")
 metadata/_edit_use_anchors_ = true
 
-[node name="PhysicalCard" parent="VBoardContainer/BoardContainer" instance=ExtResource("2_bvfni")]
+[node name="PhysicalCard" type="TextureRect" parent="VBoardContainer/BoardContainer"]
 layout_mode = 2
+texture = ExtResource("6_h0st5")
+expand_mode = 3
+stretch_mode = 4
+script = ExtResource("6_w1d6y")
 
-[node name="PhysicalCard2" parent="VBoardContainer/BoardContainer" instance=ExtResource("2_bvfni")]
+[node name="PhysicalCard2" type="TextureRect" parent="VBoardContainer/BoardContainer"]
 layout_mode = 2
+texture = ExtResource("6_h0st5")
+expand_mode = 3
+stretch_mode = 4
+script = ExtResource("6_w1d6y")
 
-[node name="PhysicalCard3" parent="VBoardContainer/BoardContainer" instance=ExtResource("2_bvfni")]
+[node name="PhysicalCard3" type="TextureRect" parent="VBoardContainer/BoardContainer"]
 layout_mode = 2
+texture = ExtResource("6_h0st5")
+expand_mode = 3
+stretch_mode = 4
+script = ExtResource("6_w1d6y")
 
-[node name="PhysicalCard4" parent="VBoardContainer/BoardContainer" instance=ExtResource("2_bvfni")]
+[node name="PhysicalCard4" type="TextureRect" parent="VBoardContainer/BoardContainer"]
 layout_mode = 2
+texture = ExtResource("6_h0st5")
+expand_mode = 3
+stretch_mode = 4
+script = ExtResource("6_w1d6y")
 
-[node name="PhysicalCard5" parent="VBoardContainer/BoardContainer" instance=ExtResource("2_bvfni")]
+[node name="PhysicalCard5" type="TextureRect" parent="VBoardContainer/BoardContainer"]
 layout_mode = 2
+texture = ExtResource("6_h0st5")
+expand_mode = 3
+stretch_mode = 4
+script = ExtResource("6_w1d6y")
 
 [node name="VActionContainer" type="VBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.95
-anchor_top = 0.95
-anchor_right = 0.95
-anchor_bottom = 0.95
+anchor_left = 0.97
+anchor_top = 0.97
+anchor_right = 0.97
+anchor_bottom = 0.97
 grow_horizontal = 0
 grow_vertical = 0
 script = ExtResource("4_rvo1l")
@@ -148,55 +170,3 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Fold
 "
-
-[node name="PhysicalPlayer" type="VBoxContainer" parent="."]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.457465
-anchor_top = 0.67284
-anchor_right = 0.543403
-anchor_bottom = 0.901235
-grow_horizontal = 2
-grow_vertical = 2
-metadata/_edit_use_anchors_ = true
-
-[node name="IDLabel" type="Label" parent="PhysicalPlayer"]
-layout_mode = 2
-text = "Player Name"
-
-[node name="HSeparator" type="HSeparator" parent="PhysicalPlayer"]
-layout_mode = 2
-
-[node name="PhysicalHand" type="Control" parent="PhysicalPlayer"]
-layout_mode = 2
-size_flags_vertical = 3
-script = ExtResource("5_kuxcb")
-IsLocalHand = true
-
-[node name="Card1" parent="PhysicalPlayer/PhysicalHand" instance=ExtResource("2_bvfni")]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 44.0
-offset_top = -8.0
-offset_right = 44.0
-offset_bottom = -8.0
-grow_horizontal = 2
-grow_vertical = 2
-rotation = 0.226893
-stretch_mode = 5
-
-[node name="Card2" parent="PhysicalPlayer/PhysicalHand" instance=ExtResource("2_bvfni")]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -41.0
-offset_top = 20.0
-offset_right = -41.0
-offset_bottom = 20.0
-grow_horizontal = 2
-grow_vertical = 2
-rotation = -0.253073
-stretch_mode = 5

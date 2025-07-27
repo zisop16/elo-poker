@@ -4,9 +4,9 @@ using System;
 [Tool]
 [GlobalClass]
 public partial class SizingButton : Button {
-    SizeType _type;
+    BetSize.SizeType _type;
     [Export]
-    public SizeType Type {
+    public BetSize.SizeType Type {
         get => _type;
         set {
             _type = value;
@@ -24,7 +24,7 @@ public partial class SizingButton : Button {
     }
     void UpdateText() {
         string formattedAmount = string.Format("{0:0.#}", _amount);
-        if (Type == SizeType.PERCENT) {
+        if (Type == BetSize.SizeType.PERCENT) {
             Text = formattedAmount + "%";
         } else {
             Text = formattedAmount + "BB";
@@ -34,6 +34,6 @@ public partial class SizingButton : Button {
         ButtonDown += OnClick;
     }
     void OnClick() {
-        Global.Lobby.ChipsInput.HandleTextSizing(Text);
+        Global.Lobby.ChipsInput.HandleTextSubmit(Text);
     }
 }
