@@ -36,6 +36,7 @@ public partial class ChipsInput : LineEdit {
         int chipsToCall = currentBetSize - currentInvested;
         int potAfterCall = potSize + chipsToCall;
         int minRaise = currentBetSize + Global.LocalGame.CurrentRaiseSize;
+        int allinSize = stack + currentInvested;
         bool foundSize = false;
         if (int.TryParse(text, out int value)) {
             chips = value;
@@ -50,16 +51,17 @@ public partial class ChipsInput : LineEdit {
                     foundSize = true;
                     break;
                 case "allin":
-                    chips = stack;
+                    chips = allinSize;
                     foundSize = true;
                     break;
             }
             int length = text.Length;
             if (!foundSize) {
+                if (length == 0) { return null; }
                 if (text[length - 1] == '%') {
                     bool validPercent = double.TryParse(text.AsSpan(0, length - 1), out double percent);
                     if (validPercent) {
-                        int totalAmount = (int)Math.Round(percent / 100 * potAfterCall);
+                        int totalAmount = (int)Math.Round(percent / 100 * potAfterCall) + currentBetSize;
                         chips = totalAmount;
                         foundSize = true;
                     }
@@ -77,7 +79,7 @@ public partial class ChipsInput : LineEdit {
             }
         }
         if (foundSize) {
-            if (chips > stack) chips = stack;
+            if (chips > allinSize) chips = allinSize;
             if (chips < minRaise) chips = minRaise;
             return chips;
         } else {

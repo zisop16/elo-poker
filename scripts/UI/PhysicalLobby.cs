@@ -10,6 +10,8 @@ public partial class PhysicalLobby : Control {
     public delegate void PokerActionEventHandler();
     [Signal]
     public delegate void BoardChangeEventHandler();
+    [Signal]
+    public delegate void HandStartEventHandler();
     public PokerGame Game;
     HBoxContainer BoardContainer;
     int LastDrawn;
@@ -33,12 +35,21 @@ public partial class PhysicalLobby : Control {
         ChipsInput = GetNode<ChipsInput>("%ChipsInput");
     }
 
-    public void ReceiveAction(Poker.Action action, int amount, int actionIndex, PokerCard[] newlyDealtCards) {
+    public void ReceiveAction(ServerActionPacket pack) {
+        PokerCard[] newlyDealtCards = pack.DealtCards;
+        int actionIndex = pack.ActionIndex;
+        Poker.Action action = pack.Action;
+        int amount = pack.Amount;
+        bool ended = pack.HandEnd;
+        Hand[] tableHands = pack.TableHands;
+        if (ended) {
+            Game.PlayerHands = tableHands;
+        }
+
         bool newCards = newlyDealtCards != null;
         if (newCards) {
             Game.ForceBoardCards(newlyDealtCards);
         }
-
         if (actionIndex > ActionIndex) {
             bool success = Game.Act(action, amount);
             if (!success) {
@@ -54,6 +65,10 @@ public partial class PhysicalLobby : Control {
             // Server has sent back the client's action along with drawn board cards
             EmitSignal(SignalName.BoardChange);
         }
+    }
+
+    public void ReceiveNewHand(HandStartPacket pack) {
+        
     }
 
     void Act(Poker.Action action, int amount = 0) {

@@ -15,6 +15,14 @@ public partial class BoardContainer : HBoxContainer {
     void AfterReady() {
         Global.Lobby.JoinedLobby += ClearBoard;
         Global.Lobby.BoardChange += OnBoardChange;
+        Global.Lobby.HandStart += OnHandStart;
+    }
+
+    void OnHandStart() {
+        foreach (PhysicalCard curr in Board) {
+            curr.Visible = false;
+        }
+        NumCardsOnBoard = 0;
     }
 
     void OnBoardChange() {

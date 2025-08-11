@@ -92,7 +92,8 @@ public partial class PokerGame {
     public ModInt BigBlindPosition { get; private set; }
     public ModInt ActingPosition { get; private set; }
     public Street Street { get; private set; }
-    public int ActingPlayer { get => Players[ActingPosition.Val].ID; }
+    public int ActingPlayerID { get => Players[ActingPosition.Val].ID; }
+    public Player ActingPlayer { get => Players[ActingPosition.Val]; }
     public Hand[] PlayerHands {
         get {
             Hand[] hands = new Hand[TableSettings.MAX_PLAYERS];
@@ -100,6 +101,10 @@ public partial class PokerGame {
                 hands[i] = Players[i].Hand;
             }
             return hands;
+        } set {
+            for (int i = 0; i < Settings.NumPlayers; i++) {
+                Players[i].Hand = value[i];
+            }
         }
     }
     public int[] PlayerIDs {
@@ -110,6 +115,15 @@ public partial class PokerGame {
             }
             return ids;
         }
+    }
+    public Player GetPlayerByID(int id) {
+        foreach (Player p in Players) {
+            if (p.ID == id) {
+                return p;
+            }
+        }
+        Assert.That(false, "Attempted to find player of ID: " + id + " but didn't exist in game");
+        return new Player();
     }
 
     public PokerGame(TableSettings settings, int[] playerIDs) {
@@ -281,7 +295,8 @@ public partial class PokerGame {
         if (amount <= 0) {
             return false;
         }
-        if (amount > Players[ActingPosition.Val].Stack) {
+        int allinSize = ActingPlayer.Stack + ActingPlayer.InvestedThisStreet;
+        if (amount > allinSize) {
             return false;
         }
         int additionalChips = amount - Players[ActingPosition.Val].InvestedThisStreet;

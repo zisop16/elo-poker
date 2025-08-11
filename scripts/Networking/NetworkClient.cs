@@ -1,6 +1,7 @@
 using Godot;
 using Collections = Godot.Collections;
 using System;
+using Poker;
 
 public partial class NetworkClient : Control {
     WebSocketMultiplayerPeer Peer;
@@ -27,7 +28,6 @@ public partial class NetworkClient : Control {
         ClientActionPacket pack = new(action, amount, Lobby.ActionIndex);
         byte[] bytes = Packet.ToBytes(pack);
         Peer.PutPacket(bytes);
-        GD.Print("Sent ", action);
     }
 
     public void JoinQueue() {
@@ -42,10 +42,7 @@ public partial class NetworkClient : Control {
     }
 
     void HandleActionPacket(ServerActionPacket pack) {
-        Poker.Action action = pack.Action;
-        int amount = pack.Amount;
-        PokerCard[] newlyDealtCards = pack.DealtCards;
-        Lobby.ReceiveAction(action, amount, pack.ActionIndex, newlyDealtCards);
+        Lobby.ReceiveAction(pack);
     }
 
     void HandleNextPacket() {
@@ -65,11 +62,8 @@ public partial class NetworkClient : Control {
 
     static void SetActive(Control parent, bool setting) {
         parent.Visible = setting;
-        foreach (Control child in parent.GetChildren()) {
-            // SetActiveRecursive(child, setting);
-        }
     }
-
+    /*
     static void SetActiveRecursive(Control element, bool setting) {
         if (setting) {
             element.MouseFilter = MouseFilterEnum.Stop;
@@ -80,6 +74,7 @@ public partial class NetworkClient : Control {
             SetActiveRecursive(child, setting);
         }
     }
+    */
 
 
     public override void _Process(double delta) {

@@ -5,6 +5,7 @@ using Poker;
 public class ActionResult {
     public bool Success = false;
     public bool StreetChange { get => NewCards != null; }
+    public bool NewHand = false;
     public PokerCard[] NewCards = null;
 }
 
@@ -31,7 +32,7 @@ public class NetworkLobby {
     }
     public bool PlayerIsActing(int PlayerID) {
         if (!Game.HandActive) return false;
-        return Game.ActingPlayer == PlayerID;
+        return Game.ActingPlayerID == PlayerID;
     }
     public void Deal() {
         Game.Deal();
@@ -63,16 +64,10 @@ public class NetworkLobby {
             result.NewCards[ind++] = curr;
         }
         if (Street == Street.SHOWDOWN) {
-            HandleShowdown();
+            result.NewHand = true;
         } else if (Street == Street.ALL_FOLDED) {
-            HandleAllFolded();
+            result.NewHand = true;
         }
         NumCardsOnBoard = Game.NumCardsOnBoard;
-    }
-    void HandleShowdown() {
-
-    }
-    void HandleAllFolded() {
-
     }
 }

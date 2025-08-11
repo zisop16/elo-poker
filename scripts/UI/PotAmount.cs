@@ -8,7 +8,6 @@ public partial class PotAmount : Label {
         }
     }
     public override void _Ready() {
-        var subscribeEvent = () => Global.Lobby.JoinedLobby += OnJoinedLobby;
         CallDeferred(MethodName.AfterReady);
     }
     void AfterReady() {

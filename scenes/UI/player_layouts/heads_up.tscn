@@ -1,10 +1,9 @@
-[gd_scene load_steps=6 format=3 uid="uid://dp5j7rxb1un3v"]
+[gd_scene load_steps=5 format=3 uid="uid://dp5j7rxb1un3v"]
 
 [ext_resource type="Script" uid="uid://bliacyfcvdvwv" path="res://scripts/UI/PhysicalHand.cs" id="1_3d8dr"]
 [ext_resource type="Texture2D" uid="uid://3ggc4ss7rlpn" path="res://images/deck/Th.png" id="2_83ite"]
 [ext_resource type="Script" uid="uid://c183jhon7hef1" path="res://scripts/UI/PhysicalCard.cs" id="3_mjm1e"]
 [ext_resource type="Texture2D" uid="uid://dc1x088trbt2i" path="res://images/deck/As.png" id="4_581ry"]
-[ext_resource type="Texture2D" uid="uid://cp4ryyou71lr1" path="res://images/card_backs/back-lightblue.png" id="5_84oa4"]
 
 [node name="HeadsUp" type="Control"]
 layout_mode = 3
@@ -112,7 +111,7 @@ offset_bottom = -8.0
 grow_horizontal = 2
 grow_vertical = 2
 rotation = 0.226893
-texture = ExtResource("5_84oa4")
+texture = ExtResource("4_581ry")
 expand_mode = 3
 stretch_mode = 5
 script = ExtResource("3_mjm1e")
@@ -130,7 +129,7 @@ offset_bottom = 20.0
 grow_horizontal = 2
 grow_vertical = 2
 rotation = -0.253073
-texture = ExtResource("5_84oa4")
+texture = ExtResource("4_581ry")
 expand_mode = 3
 stretch_mode = 5
 script = ExtResource("3_mjm1e")

@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using Godot;
 using Poker;
 
-public enum PacketType : byte { CLIENT_ACTION, SERVER_ACTION, JOIN, LOBBY_START };
+public enum PacketType : byte { CLIENT_ACTION, SERVER_ACTION, JOIN, LOBBY_START, HAND_START };
 
 public readonly struct ClientActionPacket(Poker.Action action, int amount, int actionIndex) {
     public readonly PacketType Type = PacketType.CLIENT_ACTION;
@@ -45,11 +45,57 @@ public struct ServerActionPacket {
             NumDealtCards = value.Length;
         }
     }
-    public ServerActionPacket(Poker.Action action, int amount, int actionIndex, PokerCard[] dealtBoardCards = null) {
+    public bool HandEnd = false;
+    [MarshalAs(UnmanagedType.ByValArray, SizeConst = TableSettings.MAX_PLAYERS)]
+    Hand[] _tableHands;
+    public Hand[] TableHands {
+        get => _tableHands;
+        set {
+            _tableHands = new Hand[TableSettings.MAX_PLAYERS];
+            if (value == null) {
+                return;
+            }
+            for (int i = 0; i < value.Length; i++) {
+                _tableHands[i] = value[i];
+            }
+        }
+    }
+    public ServerActionPacket(Poker.Action action, int amount, int actionIndex, PokerCard[] dealtBoardCards = null, Hand[] tableHands = null) {
         Action = action;
         Amount = amount;
         ActionIndex = actionIndex;
         DealtCards = dealtBoardCards;
+        TableHands = tableHands;
+        if (tableHands != null) {
+            HandEnd = true;
+        }
+    }
+}
+
+public readonly struct HandStartPacket {
+    public readonly PacketType Type = PacketType.HAND_START;
+    public readonly Hand LocalHand;
+    public readonly bool HandEnd = false;
+    [MarshalAs(UnmanagedType.ByValArray, SizeConst = TableSettings.MAX_PLAYERS)]
+    readonly Hand[] _tableHands;
+    public Hand[] TableHands {
+        get => _tableHands;
+        private init {
+            _tableHands = new Hand[TableSettings.MAX_PLAYERS];
+            if (value == null) {
+                return;
+            }
+            for (int i = 0; i < value.Length; i++) {
+                _tableHands[i] = value[i];
+            }
+        }
+    }
+    public HandStartPacket(Hand localHand, Hand[] tableHands = null) {
+        LocalHand = localHand;
+        if (tableHands != null) {
+            HandEnd = true;
+        }
+        TableHands = tableHands;
     }
 }
 

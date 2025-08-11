@@ -69,16 +69,26 @@ public partial class NetworkServer : Node {
         int amount = pack.Amount;
         ActionResult result = lobby.Act(action, amount);
         if (result.Success) {
-            ServerActionPacket response = new(pack.Action, pack.Amount, pack.ActionIndex);
-            if (result.StreetChange) {
-                response.DealtCards = result.NewCards;
+            ServerActionPacket response;
+            // Hands of players at showdown or fold
+            Hand[] tableHands = null;
+            if (result.NewHand) {
+                tableHands = lobby.Game.PlayerHands;
+                lobby.Deal();
             }
             foreach (int p in lobby.ConnectedPlayers) {
                 if (!result.StreetChange && p == peerID) continue;
+                if (result.NewHand) {
+                    Player curr = lobby.Game.GetPlayerByID(p);
+                    Hand currHand = curr.Hand;
+                    response = new(pack.Action, pack.Amount, pack.ActionIndex, result.NewCards, tableHands);
+                } else {
+                    response = new(pack.Action, pack.Amount, pack.ActionIndex, result.NewCards);
+                }
                 Peer.SetTargetPeer(p);
                 Peer.PutPacket(Packet.ToBytes(response));
             }
-            return ActionError.Success;
+            return ActionError.Success;   
         }
         return ActionError.InvalidAction;
     }
@@ -86,7 +96,7 @@ public partial class NetworkServer : Node {
     readonly struct QueuedPlayer(int peerID) {
         public readonly int PeerID = peerID;
         readonly double queueStart = Global.Time;
-        readonly double TimeQueued { get => Global.Time - queueStart; }
+        public double TimeQueued { get => Global.Time - queueStart; }
     }
 
     readonly List<QueuedPlayer> PlayerQueue = [];
