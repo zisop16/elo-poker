@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://08gl2eklo832"]
+[gd_scene load_steps=13 format=3 uid="uid://08gl2eklo832"]
 
 [ext_resource type="Script" uid="uid://cgkxjyc2fhr7h" path="res://scripts/UI/PhysicalLobby.cs" id="1_aoi28"]
 [ext_resource type="Theme" uid="uid://ddegklhtxecd3" path="res://resources/theme/physical_lobby.tres" id="1_sxpaa"]
@@ -11,7 +11,6 @@
 [ext_resource type="Script" uid="uid://c183jhon7hef1" path="res://scripts/UI/PhysicalCard.cs" id="6_w1d6y"]
 [ext_resource type="Script" uid="uid://bjnis3rfupvw" path="res://scripts/UI/HSizingContainer.cs" id="7_dvjy7"]
 [ext_resource type="Resource" uid="uid://ctywq2jmphiru" path="res://resources/player_settings/default_sizes.tres" id="8_sxpaa"]
-[ext_resource type="Script" uid="uid://cuoa2icw0coc7" path="res://scripts/UI/SizingButton.cs" id="11_h0st5"]
 
 [sub_resource type="StyleBoxLine" id="StyleBoxLine_xj5tl"]
 color = Color(0.2, 0.143333, 0, 1)
@@ -142,54 +141,6 @@ layout_mode = 2
 script = ExtResource("7_dvjy7")
 Preflop = true
 Settings = ExtResource("8_sxpaa")
-
-[node name="@Button@31680" type="Button" parent="VActionContainer/HSizingContainer"]
-layout_mode = 2
-text = "2.5BB"
-script = ExtResource("11_h0st5")
-Amount = 2.5
-
-[node name="@Button@31681" type="Button" parent="VActionContainer/HSizingContainer"]
-layout_mode = 2
-text = "3BB"
-script = ExtResource("11_h0st5")
-Amount = 3.0
-
-[node name="@Button@31682" type="Button" parent="VActionContainer/HSizingContainer"]
-layout_mode = 2
-text = "5BB"
-script = ExtResource("11_h0st5")
-Amount = 5.0
-
-[node name="@Button@31683" type="Button" parent="VActionContainer/HSizingContainer"]
-layout_mode = 2
-text = "6BB"
-script = ExtResource("11_h0st5")
-Amount = 6.0
-
-[node name="@Button@31684" type="Button" parent="VActionContainer/HSizingContainer"]
-layout_mode = 2
-text = "7.5BB"
-script = ExtResource("11_h0st5")
-Amount = 7.5
-
-[node name="@Button@31685" type="Button" parent="VActionContainer/HSizingContainer"]
-layout_mode = 2
-text = "11BB"
-script = ExtResource("11_h0st5")
-Amount = 11.0
-
-[node name="@Button@31686" type="Button" parent="VActionContainer/HSizingContainer"]
-layout_mode = 2
-text = "12BB"
-script = ExtResource("11_h0st5")
-Amount = 12.0
-
-[node name="@Button@31687" type="Button" parent="VActionContainer/HSizingContainer"]
-layout_mode = 2
-text = "13BB"
-script = ExtResource("11_h0st5")
-Amount = 13.0
 
 [node name="HActionContainer" type="HBoxContainer" parent="VActionContainer"]
 layout_mode = 2

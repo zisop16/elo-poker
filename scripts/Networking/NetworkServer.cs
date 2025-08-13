@@ -52,9 +52,13 @@ public partial class NetworkServer : Node {
                     ClientActionPacket actPack = Packet.FromBytes<ClientActionPacket>(rawBytes);
                     ActionError result = HandleAction(actPack, source);
                     break;
-                case PacketType.JOIN:
+                case PacketType.JOIN_QUEUE:
                     JoinQueuePacket joinPack = Packet.FromBytes<JoinQueuePacket>(rawBytes);
-                    HandleJoin(joinPack, source);
+                    HandleJoinQueue(joinPack, source);
+                    break;
+                case PacketType.EXIT_QUEUE:
+                    ExitQueuePacket exitPack = Packet.FromBytes<ExitQueuePacket>(rawBytes);
+                    HandleExitQueue(exitPack, source);
                     break;
             }
         }
@@ -88,7 +92,7 @@ public partial class NetworkServer : Node {
                 Peer.SetTargetPeer(p);
                 Peer.PutPacket(Packet.ToBytes(response));
             }
-            return ActionError.Success;   
+            return ActionError.Success;
         }
         return ActionError.InvalidAction;
     }
@@ -104,10 +108,29 @@ public partial class NetworkServer : Node {
         Success, LobbyFull, AlreadyJoined
     }
 
-    JoinError HandleJoin(JoinQueuePacket pack, int peerID) {
+    JoinError HandleJoinQueue(JoinQueuePacket pack, int peerID) {
         if (PlayerQueue.Exists(x => x.PeerID == peerID)) return JoinError.AlreadyJoined;
         PlayerQueue.Add(new QueuedPlayer(peerID));
+        Peer.SetTargetPeer(peerID);
+        Peer.PutPacket(Packet.ToBytes(new ServerQueueAck(true)));
         return JoinError.Success;
+    }
+
+    enum ExitError : byte {
+        Success, NotInQueue
+    }
+
+    ExitError HandleExitQueue(ExitQueuePacket pack, int peerID) {
+        for (int i = 0; i < PlayerQueue.Count; i++) {
+            QueuedPlayer curr = PlayerQueue[i];
+            if (curr.PeerID == peerID) {
+                PlayerQueue.RemoveAt(i);
+                Peer.SetTargetPeer(peerID);
+                Peer.PutPacket(Packet.ToBytes(new ServerQueueAck(false)));
+                return ExitError.Success;
+            }
+        }
+        return ExitError.NotInQueue;
     }
 
     [Export]
@@ -150,7 +173,7 @@ public partial class NetworkServer : Node {
         NetworkLobby lobby = new(NextGameSettings, players);
         RunningLobbies.Add(lobby);
         lobby.Deal();
-        for(int i = 0; i < NextGameSettings.NumPlayers; i++) {
+        for (int i = 0; i < NextGameSettings.NumPlayers; i++) {
             int p = players[i];
             LobbyStartPacket pack = new(TablePreset.HEADS_UP, i, lobby.Game);
             Peer.SetTargetPeer(p);

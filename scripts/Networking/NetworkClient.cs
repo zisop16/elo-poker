@@ -35,6 +35,11 @@ public partial class NetworkClient : Control {
         Peer.PutPacket(Packet.ToBytes(pack));
     }
 
+    public void ExitQueue() {
+        ExitQueuePacket pack = new();
+        Peer.PutPacket(Packet.ToBytes(pack));
+    }
+
     void HandleLobbyStartPacket(LobbyStartPacket pack) {
         Lobby.HandleLobbyStart(pack);
         SetActive(Queue, false);
@@ -43,6 +48,18 @@ public partial class NetworkClient : Control {
 
     void HandleActionPacket(ServerActionPacket pack) {
         Lobby.ReceiveAction(pack);
+    }
+
+    void HandleQueueAckPacket(ServerQueueAck pack) {
+        bool joined = pack.Joined;
+        if (joined) {
+            Queue.RegisterJoin();
+        } else {
+            if (Lobby.InGame) {
+                return;
+            }
+            Queue.RegisterExit();
+        }
     }
 
     void HandleNextPacket() {
@@ -56,6 +73,10 @@ public partial class NetworkClient : Control {
             case PacketType.SERVER_ACTION:
                 ServerActionPacket actionPack = Packet.FromBytes<ServerActionPacket>(msg);
                 HandleActionPacket(actionPack);
+                break;
+            case PacketType.SERVER_QUEUE_ACK:
+                ServerQueueAck queueAckPack = Packet.FromBytes<ServerQueueAck>(msg);
+                HandleQueueAckPacket(queueAckPack);
                 break;
         }
     }

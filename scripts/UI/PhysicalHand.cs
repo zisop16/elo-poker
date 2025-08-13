@@ -26,13 +26,16 @@ public partial class PhysicalHand : Control {
     public void AfterReady() {
         if (Engine.IsEditorHint()) return;
         Global.Lobby.JoinedLobby += UpdateCards;
+        GD.Print("hi");
     }
     void UpdateCards() {
+        GD.Print("hi2");
         if (IsLocalHand) {
             Card1.BackFacing = false;
             Card2.BackFacing = false;
             if (Engine.IsEditorHint()) return;
             Hand hand = Global.LocalHand;
+            GD.Print(hand);
             Card1.Card = hand.Card1;
             Card2.Card = hand.Card2;
         } else {

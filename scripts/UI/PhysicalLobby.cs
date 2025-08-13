@@ -13,6 +13,7 @@ public partial class PhysicalLobby : Control {
     [Signal]
     public delegate void HandStartEventHandler();
     public PokerGame Game;
+    public bool InGame { get; private set; } = false;
     HBoxContainer BoardContainer;
     int LastDrawn;
     public int ActionIndex = 0;
@@ -68,7 +69,7 @@ public partial class PhysicalLobby : Control {
     }
 
     public void ReceiveNewHand(HandStartPacket pack) {
-        
+
     }
 
     void Act(Poker.Action action, int amount = 0) {
@@ -118,6 +119,7 @@ public partial class PhysicalLobby : Control {
         Game = new(settings, ids);
         Tuple<int, Hand> forceHand = new(LocalSeat, hand);
         Game.Deal(forceHand, pack.BigBlindPosition);
+        InGame = true;
         UpdatePlayerLayout();
         GD.Print("Joined Lobby");
         EmitSignal(SignalName.JoinedLobby);

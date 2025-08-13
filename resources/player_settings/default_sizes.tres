@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="SizingSettings" load_steps=19 format=3 uid="uid://ctywq2jmphiru"]
+[gd_resource type="Resource" load_steps=19 format=3 uid="uid://ctywq2jmphiru"]
 
 [ext_resource type="Script" uid="uid://brs0n5micuraq" path="res://scripts/Settings/BetSize.cs" id="1_5vffc"]
 [ext_resource type="Script" uid="uid://cg343hgtn3gfr" path="res://scripts/Settings/SizingSettings.cs" id="1_fmdvr"]
@@ -103,6 +103,6 @@ metadata/_custom_type_script = "uid://brs0n5micuraq"
 script = ExtResource("1_fmdvr")
 NumPreflopSizes = 8
 NumPostflopSizes = 8
-PreflopSizes = Array[ExtResource("1_5vffc")]([SubResource("Resource_mmi0o"), SubResource("Resource_f4n5k"), SubResource("Resource_6is0g"), SubResource("Resource_rn1h1"), SubResource("Resource_ud0v1"), SubResource("Resource_vwbsh"), SubResource("Resource_81o1j"), SubResource("Resource_ln5ln")])
-PostflopSizes = Array[ExtResource("1_5vffc")]([SubResource("Resource_6o1wj"), SubResource("Resource_uo6lm"), SubResource("Resource_huwmx"), SubResource("Resource_0tbaw"), SubResource("Resource_354jx"), SubResource("Resource_kjl57"), SubResource("Resource_cyea3"), SubResource("Resource_aj6m5")])
+PreflopSizes = [SubResource("Resource_mmi0o"), SubResource("Resource_f4n5k"), SubResource("Resource_6is0g"), SubResource("Resource_rn1h1"), SubResource("Resource_ud0v1"), SubResource("Resource_vwbsh"), SubResource("Resource_81o1j"), SubResource("Resource_ln5ln")]
+PostflopSizes = [SubResource("Resource_6o1wj"), SubResource("Resource_uo6lm"), SubResource("Resource_huwmx"), SubResource("Resource_0tbaw"), SubResource("Resource_354jx"), SubResource("Resource_kjl57"), SubResource("Resource_cyea3"), SubResource("Resource_aj6m5")]
 metadata/_custom_type_script = "uid://cg343hgtn3gfr"

@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using Godot;
 using Poker;
 
-public enum PacketType : byte { CLIENT_ACTION, SERVER_ACTION, JOIN, LOBBY_START, HAND_START };
+public enum PacketType : byte { CLIENT_ACTION, SERVER_ACTION, JOIN_QUEUE, EXIT_QUEUE, LOBBY_START, HAND_START, CLIENT_LOBBY_JOIN_ACK, SERVER_QUEUE_ACK };
 
 public readonly struct ClientActionPacket(Poker.Action action, int amount, int actionIndex) {
     public readonly PacketType Type = PacketType.CLIENT_ACTION;
@@ -100,7 +100,21 @@ public readonly struct HandStartPacket {
 }
 
 public readonly struct JoinQueuePacket() {
-    public readonly PacketType Type = PacketType.JOIN;
+    public readonly PacketType Type = PacketType.JOIN_QUEUE;
+}
+
+public readonly struct ExitQueuePacket() {
+    public readonly PacketType Type = PacketType.EXIT_QUEUE;
+}
+
+public readonly struct ServerQueueAck(bool joined) {
+    public readonly PacketType Type = PacketType.SERVER_QUEUE_ACK;
+    public readonly bool Joined = joined;
+    public bool Exitted { get => !Joined; }
+}
+
+public readonly struct ClientLobbyJoinAck() {
+    public readonly PacketType Type = PacketType.CLIENT_LOBBY_JOIN_ACK;
 }
 
 public readonly struct LobbyStartPacket(TablePreset preset, int seatNumber, PokerGame game) {
